@@ -1,0 +1,35 @@
+@props(['name', 'size' => 20])
+@php
+$paths = [
+    'home' => '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V21h14V10.5M9 21v-6h6v6"/>',
+    'dashboard' => '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+    'building' => '<path d="M4 21V5a2 2 0 0 1 2-2h9v18M15 9h5v12M8 7h3M8 11h3M8 15h3M3 21h18"/>',
+    'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    'user' => '<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/>',
+    'key' => '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m11 12 9-9M18 5l2 2M15 8l2 2"/>',
+    'file' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/>',
+    'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+    'sun' => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/>',
+    'settings' => '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 9 19.37a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.63 15 1.7 1.7 0 0 0 3.08 14H3v-4h.08A1.7 1.7 0 0 0 4.63 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.63h.01A1.7 1.7 0 0 0 10 3.08V3h4v.08A1.7 1.7 0 0 0 15 4.63a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.37 9v.01A1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15z"/>',
+    'tag' => '<path d="M20.6 13.6 11 23.2 1 13.2V3h10.2l9.4 9.4a.85.85 0 0 1 0 1.2z" transform="scale(.9) translate(1 0)"/><circle cx="6.5" cy="8" r="1.3"/>',
+    'logout' => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+    'search' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>',
+    'arrow' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    'plus' => '<path d="M12 5v14M5 12h14"/>',
+    'edit' => '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"/>',
+    'trash' => '<path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"/>',
+    'camera' => '<path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v10H3V9a2 2 0 0 1 2-2h3l1.5-3z"/><circle cx="12" cy="13" r="4"/>',
+    'bolt' => '<path d="m13 2-9 12h8l-1 8 9-12h-8z"/>',
+    'check' => '<path d="m20 6-11 11-5-5"/>',
+    'money' => '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 9h2M6 15H4"/><circle cx="12" cy="12" r="3"/>',
+    'chevron' => '<path d="m9 18 6-6-6-6"/>',
+    'align-left' => '<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>',
+    'align-center' => '<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>',
+    'align-right' => '<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',
+    'indent' => '<path d="M4 6h16M10 10h10M10 14h10M4 18h16"/><path d="m4 10 4 2-4 2z"/>',
+    'outdent' => '<path d="M4 6h16M10 10h10M10 14h10M4 18h16"/><path d="m8 10-4 2 4 2z"/>',
+    'sparkles' => '<path d="m12 3-1.2 3.3L7.5 7.5l3.3 1.2L12 12l1.2-3.3 3.3-1.2-3.3-1.2z"/><path d="m18 13-.9 2.1L15 16l2.1.9L18 19l.9-2.1L21 16l-2.1-.9z"/><path d="m6 13-.8 1.7-1.7.8 1.7.8L6 18l.8-1.7 1.7-.8-1.7-.8z"/>',
+    'send' => '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+];
+@endphp
+<svg {{ $attributes->merge(['class' => 'icon']) }} width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $paths[$name] ?? $paths['home'] !!}</svg>

@@ -1,0 +1,18 @@
+.editor-toolbar .toolbar-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 8px;
+    margin-right: 2px;
+    border-right: 1px solid #cbd6e7;
+}
+
+.editor-toolbar .toolbar-group:last-child {
+    padding-right: 0;
+    border-right: 0;
+}
+
+.editor-toolbar button .icon {
+    display: block;
+    margin: auto;
+}

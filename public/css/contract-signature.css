@@ -1,0 +1,45 @@
+.signing-card {
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+.signing-wait {
+    margin: 0;
+    background: #fff6db;
+    color: #805800;
+}
+
+.signing-success {
+    margin: 0;
+    background: #e9f9f2;
+    color: #087a54;
+}
+
+.signing-actions {
+    align-items: start;
+}
+
+.signature-photo-preview,
+.signature-photo-evidence img {
+    display: block;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f5f7fb;
+}
+
+.signature-photo-preview {
+    margin-top: 8px;
+}
+
+.signature-photo-evidence {
+    margin: 14px 0 0;
+}
+
+.signature-photo-evidence figcaption {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 11px;
+}
