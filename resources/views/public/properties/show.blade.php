@@ -2,6 +2,10 @@
 
 @section('title', $property->title.' — AlugaPro')
 
+@push('head')
+<link rel="stylesheet" href="{{ asset('css/property-media.css') }}">
+@endpush
+
 @section('content')
 <div class="page-head">
     <div>
@@ -13,8 +17,12 @@
 </div>
 
 <div class="property-gallery">
-    @forelse($property->photos->take(3) as $photo)
-        <img src="{{ $photo->data_uri }}" alt="Foto do imóvel {{ $property->title }}">
+    @forelse($property->media->take(3) as $index => $medium)
+        @if($medium->is_image)
+            <img src="{{ route('property-media.show', $medium) }}" alt="Imagem {{ $index + 1 }} do imóvel {{ $property->title }}">
+        @elseif($medium->is_video)
+            <video src="{{ route('property-media.show', $medium) }}" controls preload="metadata">Seu navegador não consegue exibir este vídeo.</video>
+        @endif
     @empty
         <div style="display:grid;place-items:center;background:#dce8fa;grid-row:span 2"><x-icon name="building" size="100"/></div>
     @endforelse

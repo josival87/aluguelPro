@@ -17,11 +17,33 @@ class Property extends Model
         return ['rent_amount' => 'decimal:2', 'usable_area' => 'decimal:2', 'has_solar_energy' => 'boolean'];
     }
 
-    public function group() { return $this->belongsTo(PropertyGroup::class, 'group_id'); }
-    public function contract() { return $this->belongsTo(Contract::class); }
-    public function features() { return $this->belongsToMany(Feature::class); }
-    public function photos() { return $this->hasMany(PropertyPhoto::class)->orderBy('sort_order'); }
-    public function leases() { return $this->hasMany(Lease::class); }
+    public function group()
+    {
+        return $this->belongsTo(PropertyGroup::class, 'group_id');
+    }
 
-    public function getRouteKeyName(): string { return 'slug'; }
+    public function contract()
+    {
+        return $this->belongsTo(Contract::class);
+    }
+
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class);
+    }
+
+    public function media()
+    {
+        return $this->hasMany(PropertyMedia::class)->orderBy('sort_order');
+    }
+
+    public function leases()
+    {
+        return $this->hasMany(Lease::class);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 }

@@ -1,0 +1,15 @@
+.client-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.client-desktop-logout {
+    margin: 0;
+}
+
+@media (max-width: 820px) {
+    .client-desktop-logout {
+        display: none;
+    }
+}

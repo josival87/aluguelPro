@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lease extends Model
 {
+    public const IN_FORCE_STATUSES = ['active'];
+
+    public const CLOSED_STATUSES = ['closed', 'cancelled'];
+
     protected $fillable = [
         'property_id', 'client_id', 'start_date', 'end_date', 'contract_months', 'due_day',
         'rent_amount', 'status', 'has_solar_energy', 'utility_number', 'notes',
@@ -19,10 +23,38 @@ class Lease extends Model
         ];
     }
 
-    public function property() { return $this->belongsTo(Property::class); }
-    public function client() { return $this->belongsTo(Client::class); }
-    public function charges() { return $this->hasMany(Charge::class); }
-    public function solarConfig() { return $this->hasOne(SolarConfig::class); }
-    public function contract() { return $this->hasOne(LeaseContract::class); }
-    public function documents() { return $this->hasMany(LeaseDocument::class); }
+    public function isInForce(): bool
+    {
+        return in_array($this->status, self::IN_FORCE_STATUSES, true);
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function charges()
+    {
+        return $this->hasMany(Charge::class);
+    }
+
+    public function solarConfig()
+    {
+        return $this->hasOne(SolarConfig::class);
+    }
+
+    public function contract()
+    {
+        return $this->hasOne(LeaseContract::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(LeaseDocument::class);
+    }
 }

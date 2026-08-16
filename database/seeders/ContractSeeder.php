@@ -33,7 +33,7 @@ class ContractSeeder extends Seeder
 <article>
 <h1>CONTRATO DE LOCAÇÃO RESIDENCIAL</h1>
 <p><strong>LOCADOR:</strong> {{nome_locador}}, responsável pelo grupo {{nome_grupo}}, telefone {{telefone_locador}}, com administração de {{nome_empresa}}, CNPJ {{cnpj_empresa}}.</p>
-<p><strong>LOCATÁRIO:</strong> {{nome_locatario}}, CPF {{cpf_cliente}}, telefone {{telefone_cliente}} e e-mail {{email_cliente}}.</p>
+<p><strong>LOCATÁRIO:</strong> {{nome_locatario}}, CPF {{cpf_cliente}}, RG {{rg_cliente}}, profissão {{profissao_cliente}}, telefone {{telefone_cliente}} e e-mail {{email_cliente}}.</p>
 <p><strong>IMÓVEL:</strong> {{titulo_imovel}}, situado em {{endereco_imovel}}.</p>
 <h2>1. Finalidade, prazo e valor</h2>
 <p>O imóvel destina-se exclusivamente à moradia. A locação vigorará de {{data_inicio}} a {{data_fim}}, pelo prazo de {{tempo_contrato}}, com aluguel mensal de {{valor_aluguel}} e vencimento no dia {{dia_vencimento}}.</p>
@@ -52,7 +52,7 @@ HTML;
 <article>
 <h1>CONTRATO DE LOCAÇÃO COMERCIAL</h1>
 <p><strong>LOCADOR:</strong> {{nome_locador}}, responsável pelo grupo {{nome_grupo}}, telefone {{telefone_locador}}, com administração de {{nome_empresa}}, CNPJ {{cnpj_empresa}}.</p>
-<p><strong>LOCATÁRIO:</strong> {{nome_locatario}}, CPF {{cpf_cliente}}, telefone {{telefone_cliente}} e e-mail {{email_cliente}}.</p>
+<p><strong>LOCATÁRIO:</strong> {{nome_locatario}}, CPF {{cpf_cliente}}, RG {{rg_cliente}}, profissão {{profissao_cliente}}, telefone {{telefone_cliente}} e e-mail {{email_cliente}}.</p>
 <p><strong>IMÓVEL COMERCIAL:</strong> {{titulo_imovel}}, situado em {{endereco_imovel}}.</p>
 <h2>1. Destinação e licenças</h2>
 <p>O imóvel será utilizado exclusivamente para atividade comercial lícita. O locatário é responsável pelas licenças, alvarás e autorizações exigidos para sua atividade.</p>

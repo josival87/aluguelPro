@@ -30,6 +30,7 @@ $paths = [
     'outdent' => '<path d="M4 6h16M10 10h10M10 14h10M4 18h16"/><path d="m8 10-4 2 4 2z"/>',
     'sparkles' => '<path d="m12 3-1.2 3.3L7.5 7.5l3.3 1.2L12 12l1.2-3.3 3.3-1.2-3.3-1.2z"/><path d="m18 13-.9 2.1L15 16l2.1.9L18 19l.9-2.1L21 16l-2.1-.9z"/><path d="m6 13-.8 1.7-1.7.8 1.7.8L6 18l.8-1.7 1.7-.8-1.7-.8z"/>',
     'send' => '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+    'whatsapp' => '<path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.5L3 20.5l1.4-4.7A8.5 8.5 0 1 1 20.5 11.6z"/><path d="M8.3 7.5c.2-.4.4-.4.7-.4h.5c.2 0 .3.1.4.4l.7 1.7c.1.2 0 .4-.1.6l-.6.7c-.2.2-.1.4 0 .6.7 1.2 1.7 2.1 2.9 2.7.2.1.4.1.6-.1l.8-1c.2-.2.4-.3.6-.2l1.8.8c.2.1.4.2.4.4 0 .4-.2 1.3-.6 1.8-.5.6-1.3.9-2.1.8-1.1-.1-2.6-.6-4.5-2.2-2.2-1.9-3.5-4.2-3.5-5.5 0-.5.1-.8.3-1.1z"/>',
 ];
 @endphp
 <svg {{ $attributes->merge(['class' => 'icon']) }} width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $paths[$name] ?? $paths['home'] !!}</svg>

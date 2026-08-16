@@ -11,7 +11,7 @@ flowchart LR
     S["Scheduler Laravel"] --> L
     L --> O["FastAPI OCR"]
     O --> T["OpenCV + Tesseract"]
-    L -. "adaptador configurável" .-> W["Provedor WhatsApp"]
+    L -. "sessão JWT + QR Code" .-> W["Servidor WPPConnect"]
     L -. "evolução para cobrança dinâmica" .-> PSP["PSP Pix"]
 ```
 
@@ -36,7 +36,7 @@ As consultas do portal validam vínculo entre o usuário autenticado e o cliente
 | Financeiro | `charges`, `pix_payments`, `notification_logs` |
 | Energia | `solar_configs`, `solar_readings` |
 | Contratos | `contracts` (modelos-base), `lease_contracts` (versões por aluguel), `contract_signatures`, `otp_codes` |
-| Configuração | `companies`, `menus` |
+| Configuração | `companies`, `menus`, `whatsapp_settings` |
 
 Fotos e documentos são mantidos em Base64 conforme o requisito inicial. Para alto volume, recomenda-se migrar os binários para armazenamento de objetos privado e manter no PostgreSQL somente metadados, hash e chave do objeto.
 

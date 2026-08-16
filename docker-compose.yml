@@ -12,6 +12,8 @@ services:
         condition: service_healthy
       ocr:
         condition: service_started
+      wppconnect:
+        condition: service_healthy
     restart: unless-stopped
 
   web:
@@ -58,6 +60,30 @@ services:
       context: ./ocr
     restart: unless-stopped
 
+  wppconnect:
+    build:
+      context: .
+      dockerfile: docker/wppconnect/Dockerfile
+      args:
+        WPPCONNECT_VERSION: v2.10.1
+    environment:
+      PORT: "21465"
+      WPPCONNECT_HOST: http://localhost
+      WPPCONNECT_SECRET_KEY: ${WPP_CONNECT_SECRET_KEY:?Defina WPP_CONNECT_SECRET_KEY no arquivo .env}
+    ports:
+      - "127.0.0.1:21465:21465"
+    volumes:
+      - wppconnect_tokens:/usr/src/wpp-server/tokens
+      - wppconnect_userdata:/usr/src/wpp-server/userDataDir
+    shm_size: "1gb"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:21465/api-docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
   db:
     image: postgres:17-alpine
     environment:
@@ -75,3 +101,5 @@ services:
 
 volumes:
   postgres_data:
+  wppconnect_tokens:
+  wppconnect_userdata:

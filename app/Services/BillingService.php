@@ -11,26 +11,32 @@ class BillingService
     public function generateMonth(Carbon $month): int
     {
         $created = 0;
-        Lease::query()->where('status', 'active')->with('client')->chunkById(100, function ($leases) use ($month, &$created) {
-            foreach ($leases as $lease) {
-                if ($lease->start_date?->startOfMonth()->gt($month->copy()->startOfMonth())) continue;
-                if ($lease->end_date?->endOfMonth()->lt($month->copy()->startOfMonth())) continue;
+        $referenceMonth = $month->copy()->startOfMonth();
 
-                $dueDate = $month->copy()->day(min($lease->due_day, $month->daysInMonth));
+        Lease::query()->whereIn('status', Lease::IN_FORCE_STATUSES)->chunkById(100, function ($leases) use ($referenceMonth, &$created) {
+            foreach ($leases as $lease) {
+                if ($lease->start_date?->copy()->startOfMonth()->gt($referenceMonth)) {
+                    continue;
+                }
+
+                $dueDate = $referenceMonth->copy()->day(min($lease->due_day, $referenceMonth->daysInMonth));
                 $charge = Charge::firstOrCreate([
                     'lease_id' => $lease->id,
                     'type' => 'rent',
-                    'reference_month' => $month->copy()->startOfMonth()->toDateString(),
+                    'reference_month' => $referenceMonth->toDateTimeString(),
                 ], [
                     'client_id' => $lease->client_id,
                     'due_date' => $dueDate->toDateString(),
                     'amount' => $lease->rent_amount,
                     'status' => 'open',
-                    'description' => 'Aluguel de '.$month->translatedFormat('F/Y'),
+                    'description' => 'Aluguel de '.$referenceMonth->translatedFormat('F/Y'),
                 ]);
-                if ($charge->wasRecentlyCreated) $created++;
+                if ($charge->wasRecentlyCreated) {
+                    $created++;
+                }
             }
         });
+
         return $created;
     }
 }

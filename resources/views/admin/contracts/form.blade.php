@@ -13,7 +13,7 @@
         <div class="field span-2">
             <label>Texto do contrato</label>
             <x-contract-editor-toolbar />
-            @php($defaultContent='<h1>TÍTULO DO CONTRATO</h1><p>LOCATÁRIO: '.str_repeat('{',2).'nome_cliente'.str_repeat('}',2).', CPF '.str_repeat('{',2).'cpf_cliente'.str_repeat('}',2).'.</p>')
+            @php($defaultContent='<h1>TÍTULO DO CONTRATO</h1><p>LOCATÁRIO: '.str_repeat('{',2).'nome_cliente'.str_repeat('}',2).', CPF '.str_repeat('{',2).'cpf_cliente'.str_repeat('}',2).', RG '.str_repeat('{',2).'rg_cliente'.str_repeat('}',2).', profissão '.str_repeat('{',2).'profissao_cliente'.str_repeat('}',2).'.</p>')
             <div id="rich-editor" class="rich-editor" contenteditable="true">{!! old('content',$contract->content ?: $defaultContent) !!}</div>
             <textarea id="contract-content" name="content" hidden></textarea>
         </div>

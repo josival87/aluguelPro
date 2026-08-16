@@ -40,7 +40,7 @@ Troque essas credenciais e `DB_PASSWORD` antes de qualquer publicação.
 
 ```powershell
 docker compose ps
-docker compose logs -f app worker scheduler ocr
+docker compose logs -f app worker scheduler ocr wppconnect
 docker compose exec app php artisan migrate --force
 docker compose exec app php artisan db:seed --force
 docker compose exec app php artisan billing:generate
@@ -48,7 +48,7 @@ docker compose exec app php artisan billing:remind
 docker compose down
 ```
 
-Os dados PostgreSQL permanecem no volume `postgres_data`. `docker compose down -v` também apaga esse volume e não deve ser usado sem backup.
+Os dados PostgreSQL permanecem no volume `postgres_data`; os tokens e a sessão do WhatsApp permanecem em `wppconnect_tokens` e `wppconnect_userdata`. `docker compose down -v` também apaga esses volumes e não deve ser usado sem backup.
 
 ## Foto de referência de energia
 
@@ -71,9 +71,12 @@ O LCD da foto é escuro e reflexivo. O OCR local não atingiu confiança suficie
 | `PIX_EXPIRATION_MINUTES` | Validade local de cada código Pix |
 | `OTP_EXPIRATION_MINUTES` | Validade do código de assinatura |
 | `OCR_MIN_CONFIDENCE` | Confiança mínima para sugerir uma leitura |
-| `WHATSAPP_API_*` | Endpoint, token e remetente do provedor WhatsApp |
+| `WPP_CONNECT_URL` | URL interna do servidor (`http://wppconnect:21465` no Compose) |
+| `WPP_CONNECT_SESSION` | Identificador persistente da sessão do WhatsApp |
+| `WPP_CONNECT_SECRET_KEY` | Chave usada para emitir o token de acesso da sessão |
+| `WPP_CONNECT_*_TIMEOUT` | Tempos limite da comunicação com o WPPConnect |
 
-Sem credenciais WhatsApp, os envios são simulados e gravados em `notification_logs`.
+O Compose instala e executa o WPPConnect Server. O menu administrativo **WhatsApp** usa os valores do ambiente por padrão e permite substituí-los. A conexão é concluída pela leitura do QR Code; sem configuração, os envios são simulados e gravados em `notification_logs`. A documentação local do servidor fica em [http://localhost:21465/api-docs](http://localhost:21465/api-docs).
 
 ## Documentação
 

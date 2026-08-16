@@ -7,4 +7,5 @@ return [
     'pix_expiration_minutes' => (int) env('PIX_EXPIRATION_MINUTES', 30),
     'otp_expiration_minutes' => (int) env('OTP_EXPIRATION_MINUTES', 10),
     'ocr_min_confidence' => (float) env('OCR_MIN_CONFIDENCE', 0.70),
+    'billing_timezone' => env('BILLING_TIMEZONE', 'America/Sao_Paulo'),
 ];

@@ -1,0 +1,60 @@
+.charge-actions {
+    position: relative;
+}
+
+.charge-actions[open] {
+    z-index: 10;
+}
+
+.charge-actions summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.charge-actions summary::-webkit-details-marker {
+    display: none;
+}
+
+.charge-action-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 20;
+    min-width: 120px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+.charge-action-menu form {
+    margin: 0;
+}
+
+.charge-action {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--white);
+    padding: 8px 10px;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.charge-action:last-child {
+    border-bottom: 0;
+}
+
+.charge-action:hover {
+    background: #eef4ff;
+    color: var(--blue);
+}
+
+.charge-action-paid {
+    color: var(--green);
+}

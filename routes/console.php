@@ -8,5 +8,11 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('billing:generate')->monthlyOn(1, '00:05')->withoutOverlapping();
+$billingTimezone = config('business.billing_timezone', 'America/Sao_Paulo');
+
+Schedule::command('billing:generate --next')
+    ->dailyAt('23:55')
+    ->timezone($billingTimezone)
+    ->when(fn (): bool => now($billingTimezone)->isLastOfMonth())
+    ->withoutOverlapping();
 Schedule::command('billing:remind')->dailyAt('09:00')->withoutOverlapping();

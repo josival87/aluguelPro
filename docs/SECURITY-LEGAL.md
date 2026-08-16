@@ -37,7 +37,7 @@ Para produção, integre a API Pix do banco/PSP da imobiliária, persistindo `pr
 
 ## WhatsApp
 
-`WhatsAppService` é um adaptador HTTP. Sem `WHATSAPP_API_URL` e token, as mensagens são simuladas e auditadas. Ao contratar um provedor, adapte o corpo da requisição, trate webhooks, templates aprovados, opt-out e idempotência.
+`WhatsAppService` utiliza o WPPConnect para iniciar uma sessão por QR Code e enviar texto ou imagem. A URL, a sessão e a secret key são configuradas no menu administrativo; secret key e JWT ficam criptografados no banco. Sem configuração, as mensagens são simuladas e auditadas. Antes da produção, proteja o servidor WPPConnect em rede privada/HTTPS e implemente opt-out, idempotência e monitoramento da sessão.
 
 ## Assinatura eletrônica
 

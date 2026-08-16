@@ -8,13 +8,28 @@ use Illuminate\Console\Command;
 
 class GenerateMonthlyCharges extends Command
 {
-    protected $signature = 'billing:generate {month? : Mês no formato YYYY-MM}';
+    protected $signature = 'billing:generate
+                            {month? : Mês no formato YYYY-MM}
+                            {--next : Gera as cobranças do próximo mês}';
+
     protected $description = 'Gera cobranças mensais de aluguel para contratos ativos';
 
     public function handle(BillingService $billing): int
     {
-        $month = $this->argument('month') ? Carbon::createFromFormat('Y-m', $this->argument('month'))->startOfMonth() : now()->startOfMonth();
+        if ($this->argument('month') && $this->option('next')) {
+            $this->error('Informe um mês ou use --next, não os dois.');
+
+            return self::INVALID;
+        }
+
+        $month = $this->option('next')
+            ? Carbon::now(config('business.billing_timezone', 'America/Sao_Paulo'))->addMonthNoOverflow()->startOfMonth()
+            : ($this->argument('month')
+                ? Carbon::createFromFormat('Y-m', $this->argument('month'))->startOfMonth()
+                : now()->startOfMonth());
+
         $this->info($billing->generateMonth($month).' cobrança(s) criada(s).');
+
         return self::SUCCESS;
     }
 }

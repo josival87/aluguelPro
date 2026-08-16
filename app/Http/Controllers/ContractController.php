@@ -85,14 +85,14 @@ class ContractController extends Controller
         abort_if(blank($phone), 422, 'Não há telefone cadastrado para o envio do código.');
 
         $code = (string) random_int(100000, 999999);
-        OtpCode::create([
+        $otp = OtpCode::create([
             'contract_id' => $contract->id,
             'signer_type' => $type,
             'phone' => $phone,
             'code_hash' => $this->hashCode($code),
             'expires_at' => now()->addMinutes(config('business.otp_expiration_minutes')),
         ]);
-        $whatsApp->send(
+        $delivery = $whatsApp->send(
             $phone,
             "AlugaPro: seu código de assinatura é {$code}. Ele expira em ".config('business.otp_expiration_minutes').' minutos.',
             'signature_otp',
@@ -101,9 +101,20 @@ class ContractController extends Controller
 
         if (app()->isLocal()) {
             session()->flash('dev_otp', $code);
+        } elseif ($delivery->status !== 'sent') {
+            $otp->delete();
+
+            return back()->withErrors([
+                'whatsapp' => 'Não foi possível enviar o código pelo WhatsApp. Verifique a conexão WPPConnect e tente novamente.',
+            ]);
         }
 
-        return back()->with('success', 'Código de assinatura enviado por WhatsApp.');
+        return back()->with(
+            'success',
+            $delivery->status === 'sent'
+                ? 'Código de assinatura enviado por WhatsApp.'
+                : 'Código simulado para desenvolvimento.',
+        );
     }
 
     public function sign(Request $request, LeaseContract $contract)

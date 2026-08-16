@@ -28,7 +28,7 @@ class DemoSeeder extends Seeder
             'group_id'=>$group->id,'contract_id'=>$residentialContract->id,'title'=>'Apartamento 203 · Piedade','description'=>'Apartamento iluminado, ventilado e próximo a serviços essenciais.','type'=>'residential','usable_area'=>64,'bedrooms'=>2,'bathrooms'=>2,'parking_spaces'=>1,'street'=>'Rua das Palmeiras','number'=>'203','neighborhood'=>'Piedade','city'=>'Jaboatão dos Guararapes','state'=>'PE','postal_code'=>'54400-000','rent_amount'=>1850,'status'=>'available','has_solar_energy'=>true,
         ]);
         $available->features()->syncWithoutDetaching($features->pluck('id'));
-        if(!$available->photos()->exists())$available->photos()->create(['mime_type'=>'image/svg+xml','photo_base64'=>base64_encode($this->placeholder('Apartamento 203')),'sort_order'=>0]);
+        if(!$available->media()->exists())$available->media()->create(['mime_type'=>'image/svg+xml','media_base64'=>base64_encode($this->placeholder('Apartamento 203')),'sort_order'=>0]);
         $rented=Property::firstOrCreate(['slug'=>'apartamento-102-piedade'],[
             'group_id'=>$group->id,'contract_id'=>$residentialContract->id,'title'=>'Apartamento 102 · Piedade','description'=>'Unidade residencial com medição individual de energia solar.','type'=>'residential','usable_area'=>58,'bedrooms'=>2,'bathrooms'=>1,'parking_spaces'=>1,'street'=>'Avenida Bernardo Vieira','number'=>'102','neighborhood'=>'Piedade','city'=>'Jaboatão dos Guararapes','state'=>'PE','rent_amount'=>1600,'status'=>'rented','has_solar_energy'=>true,
         ]);

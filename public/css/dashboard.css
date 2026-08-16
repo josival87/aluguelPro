@@ -1,0 +1,11 @@
+.dashboard-charge-menu{position:relative}
+.dashboard-charge-menu[open]{z-index:15}
+.dashboard-charge-menu summary{list-style:none;cursor:pointer}
+.dashboard-charge-menu summary::-webkit-details-marker{display:none}
+.dashboard-charge-menu[open] summary{background:#edf4ff;border-color:#9dbcf4}
+.dashboard-charge-menu[open] summary .icon:last-child{transform:rotate(90deg)}
+.dashboard-charge-options{position:absolute;right:0;top:calc(100% + 8px);display:flex;flex-direction:column;min-width:230px;padding:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.dashboard-charge-options strong{padding:7px 10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.dashboard-charge-options a,.dashboard-charge-options span{padding:9px 10px;border-radius:8px;font-weight:650;white-space:nowrap}
+.dashboard-charge-options a:hover{background:#edf4ff;color:var(--blue)}
+@media(max-width:820px){.dashboard-actions{justify-content:flex-end}.dashboard-charge-options{right:0}.dashboard-charge-menu summary .icon:last-child{display:none}}

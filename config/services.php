@@ -2,10 +2,12 @@
 
 return [
 
-    'whatsapp' => [
-        'url' => env('WHATSAPP_API_URL'),
-        'token' => env('WHATSAPP_API_TOKEN'),
-        'sender' => env('WHATSAPP_SENDER'),
+    'wppconnect' => [
+        'url' => env('WPP_CONNECT_URL'),
+        'session' => env('WPP_CONNECT_SESSION', 'alugapro'),
+        'secret_key' => env('WPP_CONNECT_SECRET_KEY'),
+        'connect_timeout' => (int) env('WPP_CONNECT_CONNECT_TIMEOUT', 5),
+        'timeout' => (int) env('WPP_CONNECT_TIMEOUT', 30),
     ],
 
     'meter_ocr' => [

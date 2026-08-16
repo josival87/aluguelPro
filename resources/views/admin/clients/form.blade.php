@@ -1,5 +1,71 @@
-@extends('layouts.base', ['area'=>'admin'])
-@section('title',($client->exists?'Editar':'Novo').' cliente — AlugaPro')
+@extends('layouts.base', ['area' => 'admin'])
+
+@section('title', ($client->exists ? 'Editar' : 'Novo').' cliente — AlugaPro')
+
 @section('content')
-<div class="page-head"><div><h1>{{ $client->exists?'Editar cliente':'Novo cliente' }}</h1><p>Dados de identificação e acesso à área do cliente.</p></div></div><form class="card form-card" method="post" action="{{ $client->exists?route('admin.clients.update',$client):route('admin.clients.store') }}">@csrf @if($client->exists)@method('PUT')@endif<div class="form-grid"><div class="field span-2"><label>Nome completo</label><input name="name" value="{{ old('name',$client->name) }}" required></div><div class="field"><label>CPF</label><input name="cpf" value="{{ old('cpf',$client->cpf) }}" required></div><div class="field"><label>WhatsApp</label><input name="phone" value="{{ old('phone',$client->phone) }}" required></div><div class="field"><label>E-mail / login</label><input type="email" name="email" value="{{ old('email',$client->email) }}"></div><div class="field"><label>Renda familiar</label><input type="number" step="0.01" min="0" name="family_income" value="{{ old('family_income',$client->family_income) }}"></div><div class="field"><label>Status</label><select name="status">@foreach(['pending'=>'Pendente','active'=>'Ativo','inactive'=>'Inativo','rejected'=>'Rejeitado'] as $value=>$label)<option value="{{ $value }}" @selected(old('status',$client->status?:'active')===$value)>{{ $label }}</option>@endforeach</select></div><div></div><div class="field"><label>Senha {{ $client->exists?'(opcional)':'' }}</label><input type="password" name="password" {{ $client->exists?'':'required' }}></div><div class="field"><label>Confirmar senha</label><input type="password" name="password_confirmation" {{ $client->exists?'':'required' }}></div></div><div class="form-actions"><a class="btn btn-ghost" href="{{ route('admin.clients.index') }}">Cancelar</a><button class="btn">Salvar cliente</button></div></form>
+<div class="page-head">
+    <div>
+        <h1>{{ $client->exists ? 'Editar cliente' : 'Novo cliente' }}</h1>
+        <p>Dados de identificação e acesso à área do cliente.</p>
+    </div>
+</div>
+
+<form class="card form-card" method="post" action="{{ $client->exists ? route('admin.clients.update', $client) : route('admin.clients.store') }}">
+    @csrf
+    @if($client->exists) @method('PUT') @endif
+
+    <div class="form-grid">
+        <div class="field span-2">
+            <label>Nome completo</label>
+            <input name="name" value="{{ old('name', $client->name) }}" required>
+        </div>
+        <div class="field">
+            <label>CPF</label>
+            <input name="cpf" value="{{ old('cpf', $client->cpf) }}" required maxlength="14">
+        </div>
+        <div class="field">
+            <label>RG</label>
+            <input name="rg" value="{{ old('rg', $client->rg) }}" required maxlength="30" placeholder="Número e órgão expedidor">
+        </div>
+        <div class="field">
+            <label>Profissão</label>
+            <input name="profession" value="{{ old('profession', $client->profession) }}" required maxlength="255">
+        </div>
+        <div class="field">
+            <label>WhatsApp</label>
+            <input name="phone" value="{{ old('phone', $client->phone) }}" required>
+        </div>
+        <div class="field">
+            <label>E-mail / login</label>
+            <input type="email" name="email" value="{{ old('email', $client->email) }}">
+        </div>
+        <div class="field">
+            <label>Renda familiar</label>
+            <input type="number" step="0.01" min="0" name="family_income" value="{{ old('family_income', $client->family_income) }}">
+        </div>
+        <div class="field">
+            <label>Status</label>
+            <select name="status">
+                @foreach(['pending' => 'Pendente', 'active' => 'Ativo', 'inactive' => 'Inativo', 'rejected' => 'Rejeitado'] as $value => $label)
+                    <option value="{{ $value }}" @selected(old('status', $client->status ?: 'active') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div></div>
+        <div class="field">
+            <label>Senha (opcional)</label>
+            <input type="password" name="password" autocomplete="new-password">
+            <small>Deixe em branco para cadastrar o cliente sem acesso ao portal por enquanto.</small>
+        </div>
+        <div class="field">
+            <label>Confirmar senha</label>
+            <input type="password" name="password_confirmation" autocomplete="new-password">
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn btn-ghost" href="{{ route('admin.clients.index') }}">Cancelar</a>
+        <button class="btn">Salvar cliente</button>
+    </div>
+</form>
 @endsection
