@@ -35,7 +35,10 @@
 </section>
 
 <section class="card" style="margin-bottom:20px">
-    <h2>Documentos</h2>
+    <div class="page-head" style="margin-bottom:8px">
+        <div><h2>Documentos</h2></div>
+        <a class="btn btn-outline btn-sm" href="{{ route('admin.clients.edit', $client) }}#documents-upload"><x-icon name="plus"/> Adicionar documento</a>
+    </div>
     @forelse($client->documents->sortByDesc('created_at') as $document)
         <a class="list-row" href="{{ route('admin.clients.documents.show', [$client, $document]) }}" target="_blank" rel="noopener">
             <span class="metric-icon"><x-icon name="file"/></span>

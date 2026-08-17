@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::resource('grupos', GroupController::class)->parameters(['grupos' => 'group'])->names('groups')->except('show');
     Route::resource('clientes', ClientController::class)->parameters(['clientes' => 'client'])->names('clients');
     Route::get('/clientes/{client}/documentos/{document}', [ClientDocumentController::class, 'show'])->name('clients.documents.show');
+    Route::delete('/clientes/{client}/documentos/{document}', [ClientDocumentController::class, 'destroy'])->name('clients.documents.destroy');
     Route::resource('imoveis', PropertyController::class)->parameters(['imoveis' => 'property'])->names('properties');
     Route::post('/imoveis/{property}/midias', [AdminPropertyMediaController::class, 'store'])->name('properties.media.store');
     Route::delete('/imoveis/{property}/midias/{propertyMedia}', [AdminPropertyMediaController::class, 'destroy'])->name('properties.media.destroy');

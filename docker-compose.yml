@@ -5,7 +5,7 @@ services:
       dockerfile: docker/php/Dockerfile
     env_file: .env
     environment:
-      RUN_MIGRATIONS: "true"
+      RUN_MIGRATIONS: "${RUN_MIGRATIONS:-true}"
       METER_OCR_URL: http://ocr:8000
     depends_on:
       db:
@@ -19,7 +19,7 @@ services:
   web:
     image: nginx:1.27-alpine
     ports:
-      - "8080:80"
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-8080}:80"
     volumes:
       - ./:/var/www/html:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -71,7 +71,7 @@ services:
       WPPCONNECT_HOST: http://localhost
       WPPCONNECT_SECRET_KEY: ${WPP_CONNECT_SECRET_KEY:?Defina WPP_CONNECT_SECRET_KEY no arquivo .env}
     ports:
-      - "127.0.0.1:21465:21465"
+      - "${WPPCONNECT_BIND_ADDRESS:-127.0.0.1}:${WPPCONNECT_PUBLISH_PORT:-21465}:21465"
     volumes:
       - wppconnect_tokens:/usr/src/wpp-server/tokens
       - wppconnect_userdata:/usr/src/wpp-server/userDataDir
@@ -98,6 +98,8 @@ services:
       timeout: 5s
       retries: 12
     restart: unless-stopped
+    ports:
+      - "${DB_BIND_ADDRESS:-127.0.0.1}:${DB_PUBLISH_PORT:-5432}:5432"
 
 volumes:
   postgres_data:

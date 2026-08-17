@@ -18,7 +18,14 @@ class ChargeController extends Controller
         $groupId=$request->integer('group')?:null;
         $query=Charge::with('lease.property.group','client')->whereDate('reference_month',$month)->when($groupId,fn($q)=>$q->whereHas('lease.property',fn($p)=>$p->where('group_id',$groupId)));
         $charges=(clone $query)->orderBy('due_date')->get()->groupBy(fn($charge)=>$charge->due_date->day);
-        $summary=['total'=>(clone $query)->sum('amount'),'received'=>(clone $query)->where('status','paid')->sum('amount'),'open'=>(clone $query)->where('status','open')->sum('amount')];
+        $summary=[
+            'total'=>(clone $query)->sum('amount'),
+            'total_count'=>(clone $query)->count(),
+            'received'=>(clone $query)->where('status','paid')->sum('amount'),
+            'received_count'=>(clone $query)->where('status','paid')->count(),
+            'open'=>(clone $query)->where('status','open')->sum('amount'),
+            'open_count'=>(clone $query)->where('status','open')->count(),
+        ];
         $groups=PropertyGroup::orderBy('name')->get();
         return view('admin.charges.index',compact('charges','summary','groups','month','groupId'));
     }

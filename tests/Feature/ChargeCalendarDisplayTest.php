@@ -68,10 +68,22 @@ class ChargeCalendarDisplayTest extends TestCase
             'amount' => 900,
             'status' => 'open',
         ]);
+        Charge::create([
+            'lease_id' => $lease->id,
+            'client_id' => $client->id,
+            'type' => 'solar',
+            'reference_month' => '2026-08-01',
+            'due_date' => '2026-08-10',
+            'amount' => 100,
+            'status' => 'paid',
+        ]);
 
         $this->actingAs($admin)
             ->get(route('admin.charges.index', ['month' => '2026-08']))
             ->assertOk()
+            ->assertSee('Total do mês(2)')
+            ->assertSee('Recebidos(1)')
+            ->assertSee('Em aberto(1)')
             ->assertSee('Ebm 01 - R$900')
             ->assertSee('Dar baixa')
             ->assertSee('Ver ficha')

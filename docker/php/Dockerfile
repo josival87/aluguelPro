@@ -9,6 +9,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --optimize-autoloader
 COPY . .
 RUN composer dump-autoload --no-dev --optimize \
+    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 COPY docker/php/entrypoint.sh /usr/local/bin/alugapro-entrypoint
 COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini

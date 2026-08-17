@@ -10,7 +10,7 @@
     </div>
 </div>
 
-<form class="card form-card" method="post" action="{{ $client->exists ? route('admin.clients.update', $client) : route('admin.clients.store') }}">
+<form class="card form-card" method="post" enctype="multipart/form-data" action="{{ $client->exists ? route('admin.clients.update', $client) : route('admin.clients.store') }}">
     @csrf
     @if($client->exists) @method('PUT') @endif
 
@@ -28,8 +28,8 @@
             <input name="rg" value="{{ old('rg', $client->rg) }}" required maxlength="30" placeholder="Número e órgão expedidor">
         </div>
         <div class="field">
-            <label>Profissão</label>
-            <input name="profession" value="{{ old('profession', $client->profession) }}" required maxlength="255">
+            <label>Profissão (opcional)</label>
+            <input name="profession" value="{{ old('profession', $client->profession) }}" maxlength="255">
         </div>
         <div class="field">
             <label>WhatsApp</label>
@@ -51,7 +51,11 @@
                 @endforeach
             </select>
         </div>
-        <div></div>
+        <div class="field" id="documents-upload">
+            <label>{{ $client->exists ? 'Adicionar documentos' : 'Documentos' }}</label>
+            <input type="file" name="documents[]" accept="application/pdf,image/jpeg,image/png" multiple>
+            <small>PDF, JPG ou PNG. Até 5 arquivos por envio e no máximo 8 MB por arquivo.</small>
+        </div>
         <div class="field">
             <label>Senha (opcional)</label>
             <input type="password" name="password" autocomplete="new-password">
@@ -68,4 +72,35 @@
         <button class="btn">Salvar cliente</button>
     </div>
 </form>
+
+@if($client->exists)
+<section class="card" style="margin-top:20px">
+    <div class="page-head" style="margin-bottom:8px">
+        <div>
+            <h2>Documentos existentes</h2>
+            <p>Visualize ou remova os arquivos já vinculados ao cliente.</p>
+        </div>
+        <span class="badge badge-success">{{ $client->documents->count() }} arquivo(s)</span>
+    </div>
+    @forelse($client->documents->sortByDesc('created_at') as $document)
+        <div class="list-row">
+            <span class="metric-icon"><x-icon name="file"/></span>
+            <span class="list-row-main">
+                <strong>{{ $document->original_name }}</strong>
+                <small>Documento de identificação</small>
+            </span>
+            <div class="head-actions">
+                <a class="btn btn-outline btn-sm" href="{{ route('admin.clients.documents.show', [$client, $document]) }}" target="_blank" rel="noopener">Abrir</a>
+                <form method="post" action="{{ route('admin.clients.documents.destroy', [$client, $document]) }}" onsubmit="return confirm('Apagar este documento do cliente?')">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn btn-danger btn-sm" type="submit"><x-icon name="trash"/> Apagar</button>
+                </form>
+            </div>
+        </div>
+    @empty
+        <div class="empty">Nenhum documento anexado.</div>
+    @endforelse
+</section>
+@endif
 @endsection

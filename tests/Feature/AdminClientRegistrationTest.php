@@ -20,11 +20,16 @@ class AdminClientRegistrationTest extends TestCase
             ->assertOk()
             ->assertSee('name="rg"', false)
             ->assertSee('name="profession"', false)
+            ->assertSee('Profissão (opcional)')
+            ->assertDontSee('name="profession" required', false)
             ->assertSee('Senha (opcional)')
             ->assertDontSee('name="password" required', false);
 
+        $clientData = $this->clientData();
+        unset($clientData['profession']);
+
         $this->actingAs($admin)
-            ->post(route('admin.clients.store'), $this->clientData())
+            ->post(route('admin.clients.store'), $clientData)
             ->assertRedirect(route('admin.clients.index'))
             ->assertSessionHasNoErrors();
 
@@ -32,7 +37,7 @@ class AdminClientRegistrationTest extends TestCase
 
         $this->assertNull($client->user_id);
         $this->assertSame('12.345.678-9 SSP/PE', $client->rg);
-        $this->assertSame('Analista de sistemas', $client->profession);
+        $this->assertNull($client->profession);
         $this->assertSame(1, User::query()->count());
     }
 
@@ -40,10 +45,12 @@ class AdminClientRegistrationTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin', 'active' => true]);
         $client = Client::create($this->clientData());
+        $clientData = $this->clientData();
+        $clientData['profession'] = '';
 
         $this->actingAs($admin)
             ->put(route('admin.clients.update', $client), [
-                ...$this->clientData(),
+                ...$clientData,
                 'password' => 'Cliente@2026',
                 'password_confirmation' => 'Cliente@2026',
             ])
@@ -51,6 +58,7 @@ class AdminClientRegistrationTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertNotNull($client->fresh()->user_id);
+        $this->assertNull($client->fresh()->profession);
         $this->assertDatabaseHas('users', [
             'email' => 'cliente@example.test',
             'role' => 'client',
