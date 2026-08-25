@@ -12,6 +12,14 @@
     .whatsapp-qr img{width:min(280px,100%);height:auto;background:#fff;border-radius:12px;padding:10px;box-shadow:var(--shadow)}
     .whatsapp-qr p{max-width:360px;color:var(--muted);margin:10px auto 0}
     .whatsapp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.whatsapp-actions .btn{flex:1}
+    .whatsapp-automation-card{margin-top:20px}.whatsapp-automation-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+    .whatsapp-automation-head p{margin:4px 0 0;color:var(--muted)}.whatsapp-automation-list{display:grid;gap:14px}
+    .whatsapp-automation-item{border:1px solid var(--line);border-radius:16px;padding:18px;background:#fbfcff}
+    .whatsapp-automation-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+    .whatsapp-automation-title h3{margin:0 0 4px}.whatsapp-automation-title p{margin:0;color:var(--muted)}
+    .whatsapp-automation-recipient{display:inline-flex;align-items:center;white-space:nowrap;border-radius:999px;padding:6px 10px;background:#eaf1ff;color:#174ea6;font-size:.84rem;font-weight:700}
+    .whatsapp-automation-item textarea{min-height:120px}.whatsapp-variables{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;color:var(--muted);font-size:.86rem}
+    .whatsapp-variables code{border:1px solid var(--line);border-radius:7px;padding:3px 6px;background:#fff;color:var(--ink)}
     .whatsapp-test-grid{margin-top:20px}.whatsapp-test-grid .card{height:max-content}
     .whatsapp-help{margin:0;padding-left:20px;color:var(--muted)}.whatsapp-help li+li{margin-top:7px}
     @media(max-width:820px){.whatsapp-qr{min-height:260px}.whatsapp-test-grid{grid-template-columns:1fr}}
@@ -84,6 +92,46 @@
         </div>
     </section>
 </div>
+
+<form class="card whatsapp-automation-card" method="post" action="{{ route('admin.whatsapp.automations.update') }}">
+    @csrf
+    @method('PUT')
+    <div class="whatsapp-automation-head">
+        <div>
+            <h2>Mensagens automáticas</h2>
+            <p>O agendador executa estas três rotinas diariamente e evita repetir o mesmo aviso no mesmo dia.</p>
+        </div>
+        <button class="btn" type="submit"><x-icon name="check"/> Salvar mensagens</button>
+    </div>
+
+    <div class="whatsapp-automation-list">
+        @foreach($automations as $automation)
+            @php($definition = $automation->definition())
+            <article class="whatsapp-automation-item">
+                <div class="whatsapp-automation-title">
+                    <div>
+                        <h3>{{ $definition['name'] }}</h3>
+                        <p>{{ $definition['schedule'] }}</p>
+                    </div>
+                    <span class="whatsapp-automation-recipient">{{ $definition['recipient'] }}</span>
+                </div>
+                <div class="field">
+                    <label for="automation_{{ $automation->key }}">Mensagem enviada</label>
+                    <textarea id="automation_{{ $automation->key }}" name="messages[{{ $automation->key }}]" maxlength="4096" required>{{ old("messages.{$automation->key}", $automation->message) }}</textarea>
+                    <div class="whatsapp-variables">
+                        <span>Variáveis disponíveis:</span>
+                        <code>@{{cliente}}</code>
+                        <code>@{{valor}}</code>
+                        <code>@{{vencimento}}</code>
+                        <code>@{{imovel}}</code>
+                        <code>@{{grupo}}</code>
+                        <code>@{{descricao}}</code>
+                    </div>
+                </div>
+            </article>
+        @endforeach
+    </div>
+</form>
 
 <div class="grid-2 whatsapp-test-grid">
     <form class="card" method="post" action="{{ route('admin.whatsapp.test.text') }}">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\WppConnectException;
 use App\Http\Controllers\Controller;
+use App\Models\WhatsAppAutomation;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsAppService;
 use App\Services\WppConnectClient;
@@ -20,7 +21,29 @@ class WhatsAppController extends Controller
     {
         return view('admin.whatsapp.index', [
             'setting' => WhatsAppSetting::current(),
+            'automations' => WhatsAppAutomation::configured(),
         ]);
+    }
+
+    public function updateAutomations(Request $request): RedirectResponse
+    {
+        $keys = array_keys(WhatsAppAutomation::DEFINITIONS);
+        $rules = ['messages' => ['required', 'array:'.implode(',', $keys)]];
+
+        foreach ($keys as $key) {
+            $rules["messages.{$key}"] = ['required', 'string', 'max:4096'];
+        }
+
+        $messages = $request->validate($rules)['messages'];
+
+        foreach ($keys as $key) {
+            WhatsAppAutomation::query()->updateOrCreate(
+                ['key' => $key],
+                ['message' => $messages[$key]],
+            );
+        }
+
+        return back()->with('success', 'Mensagens automáticas do WhatsApp atualizadas.');
     }
 
     public function update(Request $request): RedirectResponse

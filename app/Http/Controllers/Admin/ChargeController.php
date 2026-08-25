@@ -7,6 +7,7 @@ use App\Models\Charge;
 use App\Models\PropertyGroup;
 use App\Services\BillingService;
 use App\Services\ChargePaymentService;
+use App\Services\PixService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -43,5 +44,14 @@ class ChargeController extends Controller
     {
         $payments->reopen($charge);
         return back()->with('success','Cobrança reaberta.');
+    }
+    public function pix(Charge $charge, PixService $pix)
+    {
+        $payment = $pix->createFor($charge);
+
+        return redirect()
+            ->to(route('admin.leases.show', $charge->lease_id).'#pix-gerado')
+            ->with('pix_payment_id', $payment->id)
+            ->with('success', 'Pix estático gerado. Copie o código para compartilhar com o cliente.');
     }
 }

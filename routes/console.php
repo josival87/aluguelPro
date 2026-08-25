@@ -15,4 +15,7 @@ Schedule::command('billing:generate --next')
     ->timezone($billingTimezone)
     ->when(fn (): bool => now($billingTimezone)->isLastOfMonth())
     ->withoutOverlapping();
-Schedule::command('billing:remind')->dailyAt('09:00')->withoutOverlapping();
+Schedule::command('billing:remind')
+    ->dailyAt('09:00')
+    ->timezone($billingTimezone)
+    ->withoutOverlapping();

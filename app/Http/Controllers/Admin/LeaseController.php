@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Lease;
+use App\Models\PixPayment;
 use App\Models\Property;
 use App\Services\ContractDateExtractor;
 use App\Services\ContractService;
+use App\Services\PixService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class LeaseController extends Controller
 {
@@ -45,11 +48,23 @@ class LeaseController extends Controller
         return redirect()->route('admin.leases.show', $lease)->with('success', 'Aluguel cadastrado.');
     }
 
-    public function show(Lease $lease)
+    public function show(Lease $lease, PixService $pix)
     {
         $lease->load('client.documents', 'property.group', 'charges', 'solarConfig.readings.charge', 'contract.template', 'contract.signatures', 'documents.uploader');
+        try {
+            $pix->normalizeKey((string) $lease->property->group?->pix_key);
+            $pixReady = true;
+        } catch (InvalidArgumentException) {
+            $pixReady = false;
+        }
+        $pixPayment = session('pix_payment_id')
+            ? PixPayment::with('charge')
+                ->whereKey(session('pix_payment_id'))
+                ->whereHas('charge', fn ($query) => $query->where('lease_id', $lease->id))
+                ->first()
+            : null;
 
-        return view('admin.leases.show', compact('lease'));
+        return view('admin.leases.show', compact('lease', 'pixPayment', 'pixReady'));
     }
 
     public function edit(Lease $lease, ContractDateExtractor $dateExtractor)

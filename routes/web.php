@@ -43,6 +43,7 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::put('/empresa', [CompanyController::class, 'update'])->name('company.update');
     Route::get('/whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
     Route::put('/whatsapp', [WhatsAppController::class, 'update'])->name('whatsapp.update');
+    Route::put('/whatsapp/automacoes', [WhatsAppController::class, 'updateAutomations'])->name('whatsapp.automations.update');
     Route::post('/whatsapp/conectar', [WhatsAppController::class, 'connect'])->middleware('throttle:10,1')->name('whatsapp.connect');
     Route::get('/whatsapp/status', [WhatsAppController::class, 'status'])->middleware('throttle:60,1')->name('whatsapp.status');
     Route::post('/whatsapp/teste/texto', [WhatsAppController::class, 'sendText'])->middleware('throttle:10,1')->name('whatsapp.test.text');
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::delete('/caracteristicas/{feature}', [FeatureController::class, 'destroy'])->name('features.destroy');
     Route::get('/cobrancas', [ChargeController::class, 'index'])->name('charges.index');
     Route::post('/cobrancas/gerar', [ChargeController::class, 'generate'])->name('charges.generate');
+    Route::post('/cobrancas/{charge}/pix', [ChargeController::class, 'pix'])->name('charges.pix');
     Route::patch('/cobrancas/{charge}/pagar', [ChargeController::class, 'paid'])->name('charges.paid');
     Route::patch('/cobrancas/{charge}/reabrir', [ChargeController::class, 'reopen'])->name('charges.reopen');
     Route::get('/medicao-solar', [SolarReadingController::class, 'create'])->name('solar.create');

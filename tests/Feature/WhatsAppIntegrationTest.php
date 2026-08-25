@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\WhatsAppAutomation;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsAppService;
+use App\Services\WppConnectClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +41,40 @@ class WhatsAppIntegrationTest extends TestCase
             ->assertOk()
             ->assertSee('Configuração do WhatsApp')
             ->assertSee('Conectar WhatsApp');
+    }
+
+    public function test_admin_can_update_the_three_automatic_messages(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $messages = [
+            WhatsAppAutomation::DUE_IN_5_DAYS => 'Mensagem cinco dias para {{cliente}}.',
+            WhatsAppAutomation::DUE_TODAY => 'Mensagem do vencimento de {{valor}}.',
+            WhatsAppAutomation::GROUP_DUE_TODAY => 'Mensagem para {{grupo}} sobre {{imovel}}.',
+        ];
+
+        $this->actingAs($admin)
+            ->put(route('admin.whatsapp.automations.update'), ['messages' => $messages])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success');
+
+        foreach ($messages as $key => $message) {
+            $this->assertDatabaseHas('whatsapp_automations', compact('key', 'message'));
+        }
+
+        $this->actingAs($admin)
+            ->get(route('admin.whatsapp.index'))
+            ->assertOk()
+            ->assertSee('Mensagens automáticas')
+            ->assertSee($messages[WhatsAppAutomation::DUE_IN_5_DAYS]);
+    }
+
+    public function test_local_brazilian_phone_receives_country_prefix_once(): void
+    {
+        $client = app(WppConnectClient::class);
+
+        $this->assertSame('5581987656944', $client->normalizePhone('81987656944'));
+        $this->assertSame('5581987656944', $client->normalizePhone('+55 (81) 98765-6944'));
     }
 
     public function test_connect_generates_token_starts_session_and_returns_qr_code(): void

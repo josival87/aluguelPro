@@ -58,6 +58,51 @@
         @empty<tr><td colspan="5" class="empty">Nenhum documento anexado a este aluguel.</td></tr>@endforelse</tbody>
     </table></div>
 </section>
-<section class="card" style="margin-top:20px"><div class="page-head"><div><h2>Cobranças</h2><p>Aluguel e energia baixados separadamente.</p></div></div><div class="table-wrap"><table class="responsive"><thead><tr><th>Referência</th><th>Tipo</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>@forelse($lease->charges->sortByDesc('due_date') as $charge)<tr><td data-label="Referência">{{ $charge->reference_month->translatedFormat('M/Y') }}</td><td data-label="Tipo">{{ $charge->type==='solar'?'Energia solar':'Aluguel' }}</td><td data-label="Vencimento">{{ $charge->due_date->format('d/m/Y') }}</td><td data-label="Valor"><strong>R$ {{ number_format((float)$charge->amount,2,',','.') }}</strong></td><td data-label="Status"><x-status :value="$charge->status"/></td><td>@if($charge->status==='open')<form method="post" action="{{ route('admin.charges.paid',$charge) }}">@csrf @method('PATCH')<button class="btn btn-success btn-sm">Dar baixa</button></form>@else<form method="post" action="{{ route('admin.charges.reopen',$charge) }}">@csrf @method('PATCH')<button class="btn btn-ghost btn-sm">Reabrir</button></form>@endif</td></tr>@empty<tr><td colspan="6" class="empty">Nenhuma cobrança gerada.</td></tr>@endforelse</tbody></table></div></section>
+<section class="card" style="margin-top:20px">
+    <div class="page-head"><div><h2>Cobranças</h2><p>Aluguel e energia baixados separadamente.</p></div></div>
+    @if(!$pixReady && $lease->charges->contains('status', 'open'))
+        <div class="alert" style="background:#fff6db;color:#805800">
+            <x-icon name="money"/>
+            <span>A chave Pix deste grupo ainda não tem um formato válido. <a href="{{ route('admin.groups.edit', $lease->property->group) }}" style="font-weight:800;text-decoration:underline">Corrigir chave Pix</a>.</span>
+        </div>
+    @endif
+    @if($pixPayment)
+        <div id="pix-gerado" class="card" style="margin-bottom:20px;background:#f7faff;border-color:#c8d8f8;box-shadow:none">
+            <div class="page-head" style="margin-bottom:14px">
+                <div>
+                    <h3>Pix copia e cola</h3>
+                    <p>{{ $pixPayment->charge->type === 'solar' ? 'Energia solar' : 'Aluguel' }} · {{ $pixPayment->charge->reference_month->translatedFormat('F/Y') }}</p>
+                </div>
+                <span class="badge badge-success">Pix estático</span>
+            </div>
+            <div class="money-line total" style="margin-bottom:14px"><span>Valor gerado</span><strong>R$ {{ number_format((float) $pixPayment->total_amount, 2, ',', '.') }}</strong></div>
+            <textarea id="admin-pix-code" class="pix-code" readonly aria-label="Código Pix copia e cola">{{ $pixPayment->br_code }}</textarea>
+            <button class="btn" type="button" style="margin-top:12px" data-copy="#admin-pix-code">Copiar código Pix</button>
+            <small style="display:block;color:var(--muted);margin-top:10px">Código EMVCo gerado localmente, sem API de terceiros. TXID: {{ $pixPayment->txid }}</small>
+        </div>
+    @endif
+    <div class="table-wrap"><table class="responsive">
+        <thead><tr><th>Referência</th><th>Tipo</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+        <tbody>@forelse($lease->charges->sortByDesc('due_date') as $charge)
+            <tr>
+                <td data-label="Referência">{{ $charge->reference_month->translatedFormat('M/Y') }}</td>
+                <td data-label="Tipo">{{ $charge->type==='solar'?'Energia solar':'Aluguel' }}</td>
+                <td data-label="Vencimento">{{ $charge->due_date->format('d/m/Y') }}</td>
+                <td data-label="Valor"><strong>R$ {{ number_format((float)$charge->amount,2,',','.') }}</strong></td>
+                <td data-label="Status"><x-status :value="$charge->status"/></td>
+                <td data-label="Ações">
+                    <div class="head-actions">
+                        @if($charge->status==='open')
+                            <form method="post" action="{{ route('admin.charges.pix',$charge) }}">@csrf<button class="btn btn-outline btn-sm" type="submit" @disabled(!$pixReady)><x-icon name="money"/> Gerar Pix</button></form>
+                            <form method="post" action="{{ route('admin.charges.paid',$charge) }}">@csrf @method('PATCH')<button class="btn btn-success btn-sm" type="submit">Dar baixa</button></form>
+                        @else
+                            <form method="post" action="{{ route('admin.charges.reopen',$charge) }}">@csrf @method('PATCH')<button class="btn btn-ghost btn-sm" type="submit">Reabrir</button></form>
+                        @endif
+                    </div>
+                </td>
+            </tr>
+        @empty<tr><td colspan="6" class="empty">Nenhuma cobrança gerada.</td></tr>@endforelse</tbody>
+    </table></div>
+</section>
 @if($lease->has_solar_energy)<section class="card" style="margin-top:20px"><div class="page-head"><div><h2>Histórico solar</h2><p>Leituras e consumo mensal.</p></div><a class="btn btn-outline btn-sm" href="{{ route('admin.solar.create',['lease'=>$lease->id]) }}"><x-icon name="camera"/> Nova medição</a></div>@forelse($lease->solarConfig?->readings ?? [] as $reading)<div class="list-row"><span class="metric-icon"><x-icon name="sun"/></span><span class="list-row-main"><strong>{{ $reading->reference_month->translatedFormat('F/Y') }}</strong><small>{{ $reading->previous_reading }} → {{ $reading->meter_reading }} kWh · OCR {{ $reading->ocr_status }}</small></span><span class="amount">{{ $reading->consumption_kwh }} kWh<br>R$ {{ number_format((float)$reading->amount,2,',','.') }}</span></div>@empty<div class="empty">Nenhuma medição registrada.</div>@endforelse</section>@endif
 @endsection

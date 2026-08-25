@@ -41,5 +41,8 @@ FROM build AS runtime
 
 RUN apk add --no-cache chromium fftw vips
 
+COPY docker/wppconnect/entrypoint.sh /usr/local/bin/wppconnect-entrypoint
+RUN chmod +x /usr/local/bin/wppconnect-entrypoint
+
 EXPOSE 21465
-ENTRYPOINT ["node", "dist/server.js"]
+ENTRYPOINT ["wppconnect-entrypoint"]

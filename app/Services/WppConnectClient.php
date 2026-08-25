@@ -152,7 +152,11 @@ class WppConnectClient
     {
         $normalized = preg_replace('/\D+/', '', $phone) ?? '';
 
-        if (strlen($normalized) < 10 || strlen($normalized) > 15) {
+        if (in_array(strlen($normalized), [10, 11], true)) {
+            $normalized = '55'.$normalized;
+        }
+
+        if (! str_starts_with($normalized, '55') || ! in_array(strlen($normalized), [12, 13], true)) {
             throw new InvalidArgumentException('Informe o telefone com DDI e DDD.');
         }
 

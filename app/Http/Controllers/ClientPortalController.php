@@ -8,6 +8,7 @@ use App\Models\PropertyMedia;
 use App\Services\MoneyCalculator;
 use App\Services\PixService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ClientPortalController extends Controller
 {
@@ -41,8 +42,14 @@ class ClientPortalController extends Controller
     {
         abort_unless($charge->client_id === $request->user()->client?->id, 403);
         abort_unless($charge->status === 'open', 422, 'Esta cobrança já foi paga.');
-        $payment = $pix->createFor($charge);
+        try {
+            $payment = $pix->createFor($charge);
+        } catch (ValidationException) {
+            return back()->withErrors([
+                'pix' => 'Não foi possível gerar o Pix. Entre em contato com a administradora para conferir a chave de recebimento.',
+            ]);
+        }
 
-        return redirect()->route('client.charge', $charge)->with('payment_id',$payment->id)->with('success','Pix gerado. O código expira em 30 minutos.');
+        return redirect()->route('client.charge', $charge)->with('payment_id',$payment->id)->with('success','Pix estático gerado. O código ficará disponível aqui por 30 minutos.');
     }
 }
