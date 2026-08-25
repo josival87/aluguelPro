@@ -61,7 +61,14 @@ class ClientController extends Controller
         DB::transaction(function () use ($client, $data, $files) {
             $client->update($data);
             if ($client->user) {
-                $client->user->update(['name' => $data['name'], 'email' => $data['email'], 'cpf' => $data['cpf'], 'phone' => $data['phone'], ...(! empty($data['password']) ? ['password' => $data['password']] : [])]);
+                $client->user->update([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'login' => preg_replace('/\D/', '', $data['cpf']),
+                    'cpf' => $data['cpf'],
+                    'phone' => $data['phone'],
+                    ...(! empty($data['password']) ? ['password' => $data['password']] : []),
+                ]);
             } elseif (! empty($data['password'])) {
                 $client->update(['user_id' => User::create($this->userData($data))->id]);
             }
@@ -113,7 +120,7 @@ class ClientController extends Controller
     {
         return [
             'name' => $data['name'], 'email' => $data['email'],
-            'login' => $data['email'] ?? preg_replace('/\D/', '', $data['cpf']),
+            'login' => preg_replace('/\D/', '', $data['cpf']),
             'cpf' => $data['cpf'], 'phone' => $data['phone'], 'role' => 'client',
             'password' => $data['password'],
         ];

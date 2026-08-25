@@ -33,7 +33,7 @@
             <div class="field"><label>Profissão</label><input name="profession" value="{{ old('profession') }}" required maxlength="255" placeholder="Ex.: Analista de sistemas"></div>
             <div class="field"><label>WhatsApp</label><input name="phone" value="{{ old('phone') }}" required inputmode="tel" autocomplete="tel"></div>
             <div class="field"><label>Renda familiar</label><input name="family_income" value="{{ old('family_income') }}" required inputmode="decimal" type="number" step="0.01" min="0"></div>
-            <div class="field span-2"><label>E-mail (será seu login)</label><input type="email" name="email" value="{{ old('email') }}" required autocomplete="email"></div>
+            <div class="field span-2"><label>E-mail para contato</label><input type="email" name="email" value="{{ old('email') }}" required autocomplete="email"><small>O acesso à área do cliente será feito com seu CPF.</small></div>
             <div class="field"><label>Crie uma senha</label><input type="password" name="password" required minlength="8" autocomplete="new-password" aria-describedby="password-help"><small id="password-help">Use pelo menos 8 caracteres.</small></div>
             <div class="field"><label>Confirme a senha</label><input type="password" name="password_confirmation" required minlength="8" autocomplete="new-password"><small>Digite exatamente a mesma senha.</small></div>
             <div class="field span-2"><label>Documento de identificação</label><input type="file" name="document" accept="image/jpeg,image/png,application/pdf" required><small>RG ou CNH em PDF, JPG ou PNG. Até 8 MB.</small></div>

@@ -36,8 +36,9 @@
             <input name="phone" value="{{ old('phone', $client->phone) }}" required>
         </div>
         <div class="field">
-            <label>E-mail / login</label>
+            <label>E-mail para contato</label>
             <input type="email" name="email" value="{{ old('email', $client->email) }}">
+            <small>O cliente entrará na área dele usando o CPF.</small>
         </div>
         <div class="field">
             <label>Renda familiar</label>

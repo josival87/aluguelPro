@@ -53,7 +53,8 @@
         </div>
     </header>
 @else
-    <header class="public-header"><a class="brand" href="{{ route('properties.index') }}"><span class="brand-mark">A</span>Aluga<strong>Pro</strong></a><nav><a href="{{ route('properties.index') }}">Encontrar imóvel</a><a class="btn btn-outline btn-sm" href="{{ route('login') }}">Área do cliente</a></nav></header>
+    @php($accountRoute = auth()->check() ? (auth()->user()->role === 'client' ? route('client.dashboard') : route('admin.dashboard')) : route('login'))
+    <header class="public-header"><a class="brand" href="{{ route('properties.index') }}"><span class="brand-mark">A</span>Aluga<strong>Pro</strong></a><nav><a href="{{ route('properties.index') }}">Encontrar imóvel</a><a class="btn btn-outline btn-sm" href="{{ $accountRoute }}">{{ auth()->check() ? 'Minha área' : 'Entrar' }}</a></nav></header>
 @endif
 
 <main class="main {{ $area === 'admin' ? 'admin-main' : '' }}">

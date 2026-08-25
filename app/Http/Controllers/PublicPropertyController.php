@@ -11,7 +11,6 @@ use App\Services\ContractService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class PublicPropertyController extends Controller
@@ -91,7 +90,7 @@ class PublicPropertyController extends Controller
         ]);
 
         [$client, $lease] = DB::transaction(function () use ($data, $request, $property, $contracts) {
-            $login = Str::lower($data['email']);
+            $login = preg_replace('/\D/', '', $data['cpf']);
             $user = User::create([
                 'name' => $data['name'], 'email' => $data['email'], 'login' => $login,
                 'cpf' => $data['cpf'], 'phone' => $data['phone'], 'role' => 'client',
