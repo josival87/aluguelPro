@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Cpf;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class ContractSignature extends Model
@@ -13,5 +15,18 @@ class ContractSignature extends Model
     ];
     protected $hidden = ['photo_base64'];
     protected function casts(): array { return ['signed_at' => 'datetime']; }
+
+    protected function signerDocument(): Attribute
+    {
+        return Attribute::make(
+            set: fn (mixed $value) => Cpf::digits($value),
+        );
+    }
+
+    protected function signerDocumentFormatted(): Attribute
+    {
+        return Attribute::get(fn () => Cpf::format($this->signer_document));
+    }
+
     public function contract() { return $this->belongsTo(LeaseContract::class, 'contract_id'); }
 }

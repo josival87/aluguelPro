@@ -9,6 +9,7 @@ use App\Models\PropertyMedia;
 use App\Models\User;
 use App\Services\ContractService;
 use App\Services\WhatsAppService;
+use App\Support\Cpf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -48,10 +49,12 @@ class PublicPropertyController extends Controller
     {
         abort_unless($property->status === 'available', 422, 'Este imóvel não está mais disponível.');
         abort_unless($property->contract_id, 422, 'Este imóvel ainda não possui um tipo de contrato configurado.');
+        $request->merge(['cpf' => Cpf::digits($request->input('cpf'))]);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
-            'cpf' => ['required', 'string', 'max:14', Rule::unique('clients', 'cpf')],
+            'cpf' => ['required', 'digits:11', Rule::unique('clients', 'cpf')],
             'rg' => ['required', 'string', 'max:30'],
             'profession' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
@@ -65,7 +68,7 @@ class PublicPropertyController extends Controller
             'phone.required' => 'Informe seu número de WhatsApp.',
             'phone.max' => 'O número de WhatsApp não pode ultrapassar 20 caracteres.',
             'cpf.required' => 'Informe seu CPF.',
-            'cpf.max' => 'O CPF deve ter no máximo 14 caracteres, incluindo pontos e traço.',
+            'cpf.digits' => 'O CPF deve conter 11 números.',
             'cpf.unique' => 'Este CPF já possui cadastro. Entre na sua conta para acompanhar sua proposta.',
             'rg.required' => 'Informe seu RG.',
             'rg.max' => 'O RG deve ter no máximo 30 caracteres.',
@@ -90,9 +93,8 @@ class PublicPropertyController extends Controller
         ]);
 
         [$client, $lease] = DB::transaction(function () use ($data, $request, $property, $contracts) {
-            $login = preg_replace('/\D/', '', $data['cpf']);
             $user = User::create([
-                'name' => $data['name'], 'email' => $data['email'], 'login' => $login,
+                'name' => $data['name'], 'email' => $data['email'], 'login' => $data['cpf'],
                 'cpf' => $data['cpf'], 'phone' => $data['phone'], 'role' => 'client',
                 'active' => true, 'password' => $data['password'],
             ]);

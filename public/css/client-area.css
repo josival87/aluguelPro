@@ -12,4 +12,17 @@
     .client-desktop-logout {
         display: none;
     }
+
+    .client-profile-link {
+        min-width: 38px;
+        padding: 6px 8px;
+    }
+
+    .client-profile-link span {
+        display: none;
+    }
+
+    .client-nav {
+        grid-template-columns: repeat(5, 1fr);
+    }
 }

@@ -47,8 +47,8 @@ class SolarReadingController extends Controller
         $amount = round($consumption * (float) $lease->solarConfig->price_per_kwh, 2);
         $file = $request->file('photo');
         DB::transaction(function () use ($request, $data, $lease, $month, $previous, $current, $consumption, $amount, $file) {
-            $charge = Charge::updateOrCreate(['lease_id' => $lease->id, 'type' => 'solar', 'reference_month' => $month->toDateString()], [
-                'client_id' => $lease->client_id, 'due_date' => $month->copy()->day(min($lease->due_day, $month->daysInMonth))->toDateString(), 'amount' => $amount, 'status' => 'open', 'description' => "Energia solar: {$consumption} kWh",
+            $charge = Charge::updateOrCreate(['lease_id' => $lease->id, 'generation_key' => 'solar:'.$month->format('Y-m')], [
+                'client_id' => $lease->client_id, 'type' => 'solar', 'reference_month' => $month->toDateString(), 'due_date' => $month->copy()->day(min($lease->due_day, $month->daysInMonth))->toDateString(), 'amount' => $amount, 'status' => 'open', 'description' => "Energia solar: {$consumption} kWh",
             ]);
             SolarReading::updateOrCreate(['solar_config_id' => $lease->solarConfig->id, 'reference_month' => $month->toDateString()], [
                 'charge_id' => $charge->id, 'previous_reading' => $previous, 'meter_reading' => $current, 'consumption_kwh' => $consumption, 'amount' => $amount,

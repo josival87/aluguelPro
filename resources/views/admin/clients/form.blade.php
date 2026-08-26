@@ -21,7 +21,7 @@
         </div>
         <div class="field">
             <label>CPF</label>
-            <input name="cpf" value="{{ old('cpf', $client->cpf) }}" required maxlength="14">
+            <input name="cpf" value="{{ \App\Support\Cpf::format(old('cpf', $client->cpf)) }}" required inputmode="numeric" maxlength="14" placeholder="000.000.000-00" data-cpf-mask>
         </div>
         <div class="field">
             <label>RG</label>
@@ -79,7 +79,7 @@
     <div class="page-head" style="margin-bottom:8px">
         <div>
             <h2>Documentos existentes</h2>
-            <p>Visualize ou remova os arquivos já vinculados ao cliente.</p>
+            <p>Os arquivos vinculados ao cliente podem ser visualizados, mas não excluídos.</p>
         </div>
         <span class="badge badge-success">{{ $client->documents->count() }} arquivo(s)</span>
     </div>
@@ -92,11 +92,6 @@
             </span>
             <div class="head-actions">
                 <a class="btn btn-outline btn-sm" href="{{ route('admin.clients.documents.show', [$client, $document]) }}" target="_blank" rel="noopener">Abrir</a>
-                <form method="post" action="{{ route('admin.clients.documents.destroy', [$client, $document]) }}" onsubmit="return confirm('Apagar este documento do cliente?')">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-danger btn-sm" type="submit"><x-icon name="trash"/> Apagar</button>
-                </form>
             </div>
         </div>
     @empty

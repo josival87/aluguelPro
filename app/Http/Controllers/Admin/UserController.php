@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Cpf;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -61,15 +62,19 @@ class UserController extends Controller
 
     private function validated(Request $request, ?User $user = null): array
     {
+        $request->merge(['cpf' => Cpf::digits($request->input('cpf'))]);
+
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'cpf' => ['nullable', 'string', 'max:14', Rule::unique('users')->ignore($user)],
+            'cpf' => ['nullable', 'digits:11', Rule::unique('users')->ignore($user)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user)],
             'login' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user)],
             'phone' => ['nullable', 'string', 'max:20'],
             'role' => ['required', Rule::in(['admin', 'manager'])],
             'active' => ['boolean'],
             'password' => [$user ? 'nullable' : 'required', 'nullable', 'confirmed', 'min:8'],
+        ], [
+            'cpf.digits' => 'O CPF deve conter 11 números.',
         ]);
     }
 }

@@ -82,14 +82,6 @@ class LeaseDocumentController extends Controller
         );
     }
 
-    public function destroy(Lease $lease, LeaseDocument $document)
-    {
-        $this->ensureDocumentBelongsToLease($lease, $document);
-        $document->delete();
-
-        return redirect()->route('admin.leases.show', $lease)->with('success', 'Documento removido.');
-    }
-
     private function ensureDocumentBelongsToLease(Lease $lease, LeaseDocument $document): void
     {
         abort_unless($document->lease_id === $lease->id, 404);

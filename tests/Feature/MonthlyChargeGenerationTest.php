@@ -55,6 +55,7 @@ class MonthlyChargeGenerationTest extends TestCase
             'lease_id' => $existingLease->id,
             'client_id' => $existingLease->client_id,
             'type' => 'rent',
+            'generation_key' => 'rent:2026-09',
             'reference_month' => '2026-09-01 00:00:00',
             'due_date' => '2026-09-10',
             'amount' => 1200,
@@ -163,7 +164,7 @@ class MonthlyChargeGenerationTest extends TestCase
         $client = Client::create([
             'name' => 'Locatário '.$suffix,
             'phone' => '81988888888',
-            'cpf' => substr(hash('sha256', $suffix), 0, 14),
+            'cpf' => sprintf('%011u', crc32($suffix)),
             'email' => $suffix.'@example.test',
             'status' => 'active',
         ]);

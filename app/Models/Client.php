@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Cpf;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
@@ -11,6 +13,18 @@ class Client extends Model
     protected function casts(): array
     {
         return ['family_income' => 'decimal:2'];
+    }
+
+    protected function cpf(): Attribute
+    {
+        return Attribute::make(
+            set: fn (mixed $value) => Cpf::digits($value),
+        );
+    }
+
+    protected function cpfFormatted(): Attribute
+    {
+        return Attribute::get(fn () => Cpf::format($this->cpf));
     }
 
     public function user()

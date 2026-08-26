@@ -17,7 +17,9 @@ use App\Http\Controllers\Admin\SolarReadingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WhatsAppController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClientAccessController;
 use App\Http\Controllers\ClientPortalController;
+use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\PropertyMediaController;
 use App\Http\Controllers\PublicPropertyController;
@@ -32,6 +34,12 @@ Route::get('/midias-imoveis/{propertyMedia}', [PropertyMediaController::class, '
 Route::middleware('guest')->group(function () {
     Route::get('/entrar', [AuthController::class, 'create'])->name('login');
     Route::post('/entrar', [AuthController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
+    Route::get('/entrar/solicitar-acesso', [ClientAccessController::class, 'create'])->name('access.request');
+    Route::post('/entrar/solicitar-acesso', [ClientAccessController::class, 'sendCode'])->middleware('throttle:3,1')->name('access.send');
+    Route::get('/entrar/confirmar-codigo', [ClientAccessController::class, 'code'])->name('access.code.form');
+    Route::post('/entrar/confirmar-codigo', [ClientAccessController::class, 'verifyCode'])->middleware('throttle:10,1')->name('access.code.verify');
+    Route::get('/entrar/nova-senha', [ClientAccessController::class, 'password'])->name('access.password.form');
+    Route::post('/entrar/nova-senha', [ClientAccessController::class, 'storePassword'])->middleware('throttle:5,1')->name('access.password.store');
 });
 Route::post('/sair', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
@@ -52,7 +60,6 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::resource('grupos', GroupController::class)->parameters(['grupos' => 'group'])->names('groups')->except('show');
     Route::resource('clientes', ClientController::class)->parameters(['clientes' => 'client'])->names('clients');
     Route::get('/clientes/{client}/documentos/{document}', [ClientDocumentController::class, 'show'])->name('clients.documents.show');
-    Route::delete('/clientes/{client}/documentos/{document}', [ClientDocumentController::class, 'destroy'])->name('clients.documents.destroy');
     Route::resource('imoveis', PropertyController::class)->parameters(['imoveis' => 'property'])->names('properties');
     Route::post('/imoveis/{property}/midias', [AdminPropertyMediaController::class, 'store'])->name('properties.media.store');
     Route::delete('/imoveis/{property}/midias/{propertyMedia}', [AdminPropertyMediaController::class, 'destroy'])->name('properties.media.destroy');
@@ -60,15 +67,17 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::resource('alugueis', LeaseController::class)->parameters(['alugueis' => 'lease'])->names('leases');
     Route::post('/alugueis/{lease}/documentos', [LeaseDocumentController::class, 'store'])->name('leases.documents.store');
     Route::get('/alugueis/{lease}/documentos/{document}/baixar', [LeaseDocumentController::class, 'download'])->name('leases.documents.download');
-    Route::delete('/alugueis/{lease}/documentos/{document}', [LeaseDocumentController::class, 'destroy'])->name('leases.documents.destroy');
     Route::get('/caracteristicas', [FeatureController::class, 'index'])->name('features.index');
     Route::post('/caracteristicas', [FeatureController::class, 'store'])->name('features.store');
     Route::put('/caracteristicas/{feature}', [FeatureController::class, 'update'])->name('features.update');
     Route::delete('/caracteristicas/{feature}', [FeatureController::class, 'destroy'])->name('features.destroy');
     Route::get('/cobrancas', [ChargeController::class, 'index'])->name('charges.index');
     Route::post('/cobrancas/gerar', [ChargeController::class, 'generate'])->name('charges.generate');
+    Route::post('/alugueis/{lease}/cobrancas-avulsas', [ChargeController::class, 'storeOneOff'])->name('leases.charges.store');
     Route::post('/cobrancas/{charge}/pix', [ChargeController::class, 'pix'])->name('charges.pix');
     Route::post('/cobrancas/{charge}/cobrar-atraso', [ChargeController::class, 'sendOverdueNotice'])->middleware('throttle:10,1')->name('charges.overdue-notice');
+    Route::patch('/cobrancas/{charge}/valor', [ChargeController::class, 'updateAmount'])->name('charges.amount.update');
+    Route::patch('/cobrancas/{charge}/zerar-e-baixar', [ChargeController::class, 'waive'])->name('charges.waive');
     Route::patch('/cobrancas/{charge}/pagar', [ChargeController::class, 'paid'])->name('charges.paid');
     Route::patch('/cobrancas/{charge}/reabrir', [ChargeController::class, 'reopen'])->name('charges.reopen');
     Route::get('/medicao-solar', [SolarReadingController::class, 'create'])->name('solar.create');
@@ -83,6 +92,10 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
 
 Route::middleware(['auth', 'role:client'])->prefix('cliente')->name('client.')->group(function () {
     Route::get('/', [ClientPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dados-pessoais', [ClientProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/dados-pessoais', [ClientProfileController::class, 'update'])->name('profile.update');
+    Route::post('/dados-pessoais/documentos', [ClientProfileController::class, 'storeDocument'])->name('documents.store');
+    Route::get('/dados-pessoais/documentos/{document}', [ClientProfileController::class, 'showDocument'])->name('documents.show');
     Route::get('/alugueis/{lease}', [ClientPortalController::class, 'lease'])->name('lease');
     Route::get('/cobrancas/{charge}', [ClientPortalController::class, 'charge'])->name('charge');
     Route::post('/cobrancas/{charge}/pix', [ClientPortalController::class, 'pix'])->name('pix');

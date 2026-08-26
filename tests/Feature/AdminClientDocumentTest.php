@@ -84,7 +84,7 @@ class AdminClientDocumentTest extends TestCase
             ->assertSee('Documentos existentes')
             ->assertSee('rg-frente.pdf')
             ->assertSee('Abrir')
-            ->assertSee('Apagar')
+            ->assertDontSee('Apagar')
             ->assertSee('name="documents[]"', false)
             ->assertSee('class="field" id="documents-upload"', false)
             ->assertSeeInOrder([
@@ -111,9 +111,8 @@ class AdminClientDocumentTest extends TestCase
         $this->assertCount(2, $client->fresh()->documents);
     }
 
-    public function test_admin_can_delete_a_client_document_from_the_edit_page(): void
+    public function test_client_documents_do_not_have_a_deletion_route(): void
     {
-        $admin = User::factory()->create(['role' => 'admin', 'active' => true]);
         $client = $this->createClient('123.456.789-00');
         $document = $client->documents()->create([
             'type' => 'identification',
@@ -122,12 +121,8 @@ class AdminClientDocumentTest extends TestCase
             'document_base64' => base64_encode('documento'),
         ]);
 
-        $this->actingAs($admin)
-            ->delete(route('admin.clients.documents.destroy', [$client, $document]))
-            ->assertRedirect(route('admin.clients.edit', $client))
-            ->assertSessionHas('success', 'Documento removido.');
-
-        $this->assertDatabaseMissing('client_documents', ['id' => $document->id]);
+        $this->assertNull(app('router')->getRoutes()->getByName('admin.clients.documents.destroy'));
+        $this->assertDatabaseHas('client_documents', ['id' => $document->id]);
     }
 
     private function createClient(string $cpf): Client

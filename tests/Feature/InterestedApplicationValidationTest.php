@@ -65,6 +65,8 @@ class InterestedApplicationValidationTest extends TestCase
 
         $this->assertSame('12.345.678-9 SSP/PE', $client->rg);
         $this->assertSame('Analista de sistemas', $client->profession);
+        $this->assertSame('12345678900', $client->cpf);
+        $this->assertSame('12345678900', $client->user->cpf);
         $this->assertSame('12345678900', $client->user->login);
         $this->assertStringContainsString('12.345.678-9 SSP/PE', $contract->final_content);
         $this->assertStringContainsString('Analista de sistemas', $contract->final_content);

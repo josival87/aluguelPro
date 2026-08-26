@@ -17,6 +17,7 @@ $labels = [
     'cancelled' => 'Cancelado',
     'open' => 'Em aberto',
     'paid' => 'Pago',
+    'waived' => 'Baixada sem valor',
     'signed' => 'Assinado',
     'draft' => 'Rascunho',
     'queued' => 'Na fila',
@@ -24,7 +25,7 @@ $labels = [
     'simulated' => 'Simulada',
     'failed' => 'Falhou',
 ];
-$class = in_array($value, ['available', 'active', 'paid', 'signed', 'sent'], true)
+$class = in_array($value, ['available', 'active', 'paid', 'waived', 'signed', 'sent'], true)
     ? 'success'
     : (in_array($value, ['closed', 'cancelled', 'rejected', 'inactive', 'failed'], true) ? 'danger' : 'warning');
 @endphp

@@ -39,14 +39,4 @@ class ClientDocumentController extends Controller
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
-
-    public function destroy(Client $client, ClientDocument $document)
-    {
-        abort_unless($document->client_id === $client->id, 404);
-
-        $document->delete();
-
-        return redirect()->route('admin.clients.edit', $client)
-            ->with('success', 'Documento removido.');
-    }
 }

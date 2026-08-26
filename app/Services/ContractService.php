@@ -210,7 +210,7 @@ class ContractService
             'nome_cliente' => $clientName,
             'nome_locatario' => $clientName,
             'nome_locatpario' => $clientName,
-            'cpf_cliente' => $client->cpf ?: 'não informado',
+            'cpf_cliente' => $client->cpf_formatted ?: 'não informado',
             'rg_cliente' => $client->rg ?: 'não informado',
             'profissao_cliente' => $client->profession ?: 'não informada',
             'telefone_cliente' => $client->phone ?: 'não informado',

@@ -29,7 +29,7 @@
         <form method="post" action="{{ route('admin.contracts.generate',$lease) }}">@csrf<button class="btn" @disabled(!$lease->start_date)><x-icon name="file"/> Carregar contrato-base</button></form>
     @endif
 </section>
-<section class="card"><h2>Cliente</h2><a class="list-row" href="{{ route('admin.clients.show',$lease->client) }}"><span class="metric-icon"><x-icon name="user"/></span><span class="list-row-main"><strong>{{ $lease->client->name }}</strong><small>{{ $lease->client->cpf }} · {{ $lease->client->phone }}</small></span><x-icon name="chevron"/></a><p>{{ $lease->client->documents->count() }} documento(s) anexado(s).</p></section></div>
+<section class="card"><h2>Cliente</h2><a class="list-row" href="{{ route('admin.clients.show',$lease->client) }}"><span class="metric-icon"><x-icon name="user"/></span><span class="list-row-main"><strong>{{ $lease->client->name }}</strong><small>{{ $lease->client->cpf_formatted }} · {{ $lease->client->phone }}</small></span><x-icon name="chevron"/></a><p>{{ $lease->client->documents->count() }} documento(s) anexado(s).</p></section></div>
 @php($documentCategories=['legacy_contract'=>'Contrato antigo','addendum'=>'Aditivo','inspection'=>'Vistoria','receipt'=>'Comprovante','other'=>'Outro documento'])
 <section class="card" style="margin-top:20px">
     <div class="page-head">
@@ -53,13 +53,43 @@
                 <td data-label="Tipo">{{ $documentCategories[$document->category] ?? 'Outro documento' }}</td>
                 <td data-label="Tamanho">{{ $document->formatted_size }}</td>
                 <td data-label="Enviado em">{{ $document->created_at->format('d/m/Y H:i') }}@if($document->uploader)<small style="display:block;color:var(--muted)">por {{ $document->uploader->name }}</small>@endif</td>
-                <td><div class="head-actions"><a class="btn btn-outline btn-sm" href="{{ route('admin.leases.documents.download',[$lease,$document]) }}">Baixar</a><form method="post" action="{{ route('admin.leases.documents.destroy',[$lease,$document]) }}" onsubmit="return confirm('Remover este documento da ficha do aluguel?')">@csrf @method('DELETE')<button class="btn btn-danger btn-sm"><x-icon name="trash"/> Excluir</button></form></div></td>
+                <td><div class="head-actions"><a class="btn btn-outline btn-sm" href="{{ route('admin.leases.documents.download',[$lease,$document]) }}">Baixar</a></div></td>
             </tr>
         @empty<tr><td colspan="5" class="empty">Nenhum documento anexado a este aluguel.</td></tr>@endforelse</tbody>
     </table></div>
 </section>
-<section class="card" style="margin-top:20px">
-    <div class="page-head"><div><h2>Cobranças</h2><p>Aluguel e energia baixados separadamente.</p></div></div>
+<section class="card" id="cobrancas" style="margin-top:20px">
+    <div class="page-head"><div><h2>Cobranças</h2><p>Gere cobranças avulsas e gerencie os lançamentos deste aluguel.</p></div></div>
+    <form method="post" action="{{ route('admin.leases.charges.store', $lease) }}" style="margin-bottom:24px">
+        @csrf
+        <h3>Nova cobrança avulsa</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="one-off-type">Tipo da cobrança</label>
+                <select id="one-off-type" name="type" required>
+                    <option value="rent" @selected(old('type', 'rent') === 'rent')>Aluguel</option>
+                    <option value="solar" @selected(old('type') === 'solar')>Energia solar</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="one-off-amount">Valor</label>
+                <input id="one-off-amount" name="amount" type="number" min="0.01" max="9999999999.99" step="0.01" value="{{ old('amount') }}" placeholder="0,00" required>
+            </div>
+            <div class="field">
+                <label for="one-off-due-date">Data de vencimento</label>
+                <input id="one-off-due-date" name="due_date" type="date" value="{{ old('due_date', now()->toDateString()) }}" required>
+            </div>
+            <div class="field">
+                <label for="one-off-status">Status</label>
+                <select id="one-off-status" name="status" required>
+                    <option value="open" @selected(old('status', 'open') === 'open')>Em aberto</option>
+                    <option value="paid" @selected(old('status') === 'paid')>Pago</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions"><button class="btn" type="submit"><x-icon name="plus"/> Gerar cobrança avulsa</button></div>
+    </form>
+    <div class="alert" style="background:#f7faff;color:#36506f"><x-icon name="money"/><span>Ao alterar ou zerar um valor, os Pix pendentes deixam de ser exibidos. Um código Pix estático que já foi copiado não pode ser revogado.</span></div>
     @if(!$pixReady && $lease->charges->contains('status', 'open'))
         <div class="alert" style="background:#fff6db;color:#805800">
             <x-icon name="money"/>
@@ -85,16 +115,39 @@
         <thead><tr><th>Referência</th><th>Tipo</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr></thead>
         <tbody>@forelse($lease->charges->sortByDesc('due_date') as $charge)
             <tr>
-                <td data-label="Referência">{{ $charge->reference_month->translatedFormat('M/Y') }}</td>
+                <td data-label="Referência">{{ $charge->reference_month->translatedFormat('M/Y') }}@if($charge->generation_key === null)<small style="display:block;color:var(--muted)">Avulsa</small>@endif</td>
                 <td data-label="Tipo">{{ $charge->type==='solar'?'Energia solar':'Aluguel' }}</td>
                 <td data-label="Vencimento">{{ $charge->due_date->format('d/m/Y') }}</td>
-                <td data-label="Valor"><strong>R$ {{ number_format((float)$charge->amount,2,',','.') }}</strong></td>
-                <td data-label="Status"><x-status :value="$charge->status"/></td>
+                <td data-label="Valor">
+                    @if($charge->status === 'open')
+                        <form class="charge-amount-form" method="post" action="{{ route('admin.charges.amount.update', $charge) }}">
+                            @csrf @method('PATCH')
+                            <span aria-hidden="true">R$</span>
+                            <label class="sr-only" for="charge-amount-{{ $charge->id }}">Valor da cobrança de {{ $charge->reference_month->translatedFormat('M/Y') }}</label>
+                            <input id="charge-amount-{{ $charge->id }}" name="amount" type="number" min="0.01" max="9999999999.99" step="0.01" value="{{ number_format((float) $charge->amount, 2, '.', '') }}" required>
+                            <button class="btn btn-outline btn-sm" type="submit"><x-icon name="edit" size="16"/> Salvar</button>
+                        </form>
+                    @else
+                        <strong>R$ {{ number_format((float)$charge->amount,2,',','.') }}</strong>
+                    @endif
+                    @if($adjustment = $charge->adjustments->first())
+                        <small class="charge-adjustment-note">
+                            @if($adjustment->action === 'waived')
+                                Zerada de R$ {{ number_format((float) $adjustment->previous_amount, 2, ',', '.') }}
+                            @else
+                                Alterada de R$ {{ number_format((float) $adjustment->previous_amount, 2, ',', '.') }} para R$ {{ number_format((float) $adjustment->new_amount, 2, ',', '.') }}
+                            @endif
+                            por {{ $adjustment->user?->name ?? 'usuário removido' }} em {{ $adjustment->created_at->format('d/m/Y H:i') }}.
+                        </small>
+                    @endif
+                </td>
+                <td data-label="Status"><x-status :value="$charge->payment_method === 'waiver' ? 'waived' : $charge->status"/></td>
                 <td data-label="Ações">
                     <div class="head-actions">
                         @if($charge->status==='open')
                             <form method="post" action="{{ route('admin.charges.pix',$charge) }}">@csrf<button class="btn btn-outline btn-sm" type="submit" @disabled(!$pixReady)><x-icon name="money"/> Gerar Pix</button></form>
                             <form method="post" action="{{ route('admin.charges.paid',$charge) }}">@csrf @method('PATCH')<button class="btn btn-success btn-sm" type="submit">Dar baixa</button></form>
+                            <form method="post" action="{{ route('admin.charges.waive',$charge) }}" data-confirm="Zerar esta cobrança e dar baixa sem registrar recebimento? Os Pix pendentes deixarão de ser exibidos, mas um código estático já copiado não pode ser revogado.">@csrf @method('PATCH')<button class="btn btn-danger btn-sm" type="submit">Zerar e dar baixa</button></form>
                         @else
                             <form method="post" action="{{ route('admin.charges.reopen',$charge) }}">@csrf @method('PATCH')<button class="btn btn-ghost btn-sm" type="submit">Reabrir</button></form>
                         @endif

@@ -53,7 +53,7 @@ class LeaseController extends Controller
         $lease->load([
             'client.documents',
             'property.group',
-            'charges',
+            'charges.adjustments.user',
             'solarConfig.readings.charge',
             'contract.template',
             'contract.signatures',

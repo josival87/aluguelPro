@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\Cpf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -56,17 +57,15 @@ class AuthController extends Controller
             return $staff;
         }
 
-        $cpf = preg_replace('/\D/', '', $identifier) ?? '';
+        $cpf = Cpf::digits($identifier) ?? '';
 
         if (strlen($cpf) === 11 && preg_match('/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/', $identifier)) {
-            $formattedCpf = substr($cpf, 0, 3).'.'.substr($cpf, 3, 3).'.'.substr($cpf, 6, 3).'-'.substr($cpf, 9, 2);
-
             return User::query()
                 ->where('role', 'client')
                 ->where('active', true)
-                ->where(function ($query) use ($cpf, $formattedCpf) {
-                    $query->whereIn('cpf', [$cpf, $formattedCpf])
-                        ->orWhereHas('client', fn ($client) => $client->whereIn('cpf', [$cpf, $formattedCpf]));
+                ->where(function ($query) use ($cpf) {
+                    $query->where('cpf', $cpf)
+                        ->orWhereHas('client', fn ($client) => $client->where('cpf', $cpf));
                 })
                 ->first();
         }

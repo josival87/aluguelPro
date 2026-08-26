@@ -7,7 +7,7 @@
     <div>
         <a style="color:var(--blue);font-weight:700" href="{{ route('admin.clients.index') }}">← Clientes</a>
         <h1 style="margin-top:8px">{{ $client->name }}</h1>
-        <p>{{ $client->cpf }} · {{ $client->phone }}</p>
+        <p>{{ $client->cpf_formatted }} · {{ $client->phone }}</p>
     </div>
     <div class="head-actions">
         <x-status :value="$client->status"/>
@@ -25,7 +25,7 @@
 <section class="card" style="margin-bottom:20px">
     <h2>Dados pessoais</h2>
     <div class="form-grid">
-        <div class="field"><label>CPF</label><span>{{ $client->cpf }}</span></div>
+        <div class="field"><label>CPF</label><span>{{ $client->cpf_formatted }}</span></div>
         <div class="field"><label>RG</label><span>{{ $client->rg ?: 'Não informado' }}</span></div>
         <div class="field"><label>Profissão</label><span>{{ $client->profession ?: 'Não informada' }}</span></div>
         <div class="field"><label>WhatsApp</label><span>{{ $client->phone }}</span></div>

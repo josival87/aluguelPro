@@ -40,12 +40,30 @@
         </nav>
         <form method="post" action="{{ route('logout') }}" class="sidebar-user">@csrf<button><span class="avatar">{{ mb_substr(auth()->user()->name,0,1) }}</span><span>{{ auth()->user()->name }}<small>Sair da conta</small></span><x-icon name="logout"/></button></form>
     </aside>
-    <header class="mobile-top"><a class="brand" href="{{ route('admin.dashboard') }}"><span class="brand-mark">A</span>Aluga<strong>Pro</strong></a><span class="avatar">{{ mb_substr(auth()->user()->name,0,1) }}</span></header>
+    <header class="mobile-top">
+        <a class="brand" href="{{ route('admin.dashboard') }}"><span class="brand-mark">A</span>Aluga<strong>Pro</strong></a>
+        <details class="mobile-account-menu">
+            <summary aria-label="Abrir menu da conta">
+                <span class="avatar" aria-hidden="true">{{ mb_substr(auth()->user()->name,0,1) }}</span>
+            </summary>
+            <div class="mobile-account-popover">
+                <div class="mobile-account-user">
+                    <strong>{{ auth()->user()->name }}</strong>
+                    <small>Área administrativa</small>
+                </div>
+                <form method="post" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"><x-icon name="logout"/> Sair</button>
+                </form>
+            </div>
+        </details>
+    </header>
 @elseif($area === 'client')
     <header class="client-top">
         <a class="brand" href="{{ route('client.dashboard') }}"><span class="brand-mark">A</span>Aluga<strong>Pro</strong></a>
         <div class="client-top-actions">
             <div class="client-greeting"><small>Olá,</small> {{ auth()->user()->name }}</div>
+            <a class="btn btn-outline btn-sm client-profile-link" href="{{ route('client.profile.edit') }}"><x-icon name="user"/><span>Dados pessoais</span></a>
             <form class="client-desktop-logout" method="post" action="{{ route('logout') }}">
                 @csrf
                 <button class="btn btn-outline btn-sm" type="submit"><x-icon name="logout"/><span>Sair</span></button>
@@ -72,7 +90,7 @@
     <a class="{{ request()->routeIs('admin.assistant.*')?'active':'' }}" href="{{ route('admin.assistant.index') }}"><x-icon name="sparkles"/><span>Assistente</span></a>
 </nav>
 @elseif($area === 'client' && auth()->check())
-<nav class="bottom-nav client-nav"><a class="active" href="{{ route('client.dashboard') }}"><x-icon name="home"/><span>Início</span></a><a href="{{ route('client.dashboard') }}#cobrancas"><x-icon name="money"/><span>Pagamentos</span></a><a href="{{ route('client.dashboard') }}#contratos"><x-icon name="file"/><span>Contratos</span></a><form method="post" action="{{ route('logout') }}">@csrf<button><x-icon name="logout"/><span>Sair</span></button></form></nav>
+<nav class="bottom-nav client-nav"><a class="{{ request()->routeIs('client.dashboard')?'active':'' }}" href="{{ route('client.dashboard') }}"><x-icon name="home"/><span>Início</span></a><a href="{{ route('client.dashboard') }}#cobrancas"><x-icon name="money"/><span>Pagamentos</span></a><a href="{{ route('client.dashboard') }}#contratos"><x-icon name="file"/><span>Contratos</span></a><a class="{{ request()->routeIs('client.profile.*', 'client.documents.*')?'active':'' }}" href="{{ route('client.profile.edit') }}"><x-icon name="user"/><span>Dados</span></a><form method="post" action="{{ route('logout') }}">@csrf<button><x-icon name="logout"/><span>Sair</span></button></form></nav>
 @endif
 <script src="{{ asset('js/app.js') }}" defer></script>
 @stack('scripts')

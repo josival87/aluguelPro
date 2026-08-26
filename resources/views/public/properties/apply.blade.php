@@ -28,7 +28,7 @@
         <h2>Dados pessoais</h2>
         <div class="form-grid">
             <div class="field"><label>Nome completo</label><input name="name" value="{{ old('name') }}" required autocomplete="name"></div>
-            <div class="field"><label>CPF</label><input name="cpf" value="{{ old('cpf') }}" required inputmode="numeric" placeholder="000.000.000-00"></div>
+            <div class="field"><label>CPF</label><input name="cpf" value="{{ \App\Support\Cpf::format(old('cpf')) }}" required inputmode="numeric" maxlength="14" placeholder="000.000.000-00" data-cpf-mask></div>
             <div class="field"><label>RG</label><input name="rg" value="{{ old('rg') }}" required maxlength="30" placeholder="Número e órgão expedidor"></div>
             <div class="field"><label>Profissão</label><input name="profession" value="{{ old('profession') }}" required maxlength="255" placeholder="Ex.: Analista de sistemas"></div>
             <div class="field"><label>WhatsApp</label><input name="phone" value="{{ old('phone') }}" required inputmode="tel" autocomplete="tel"></div>

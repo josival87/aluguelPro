@@ -16,7 +16,7 @@ class LeaseDocumentWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_attach_download_and_remove_multiple_lease_documents(): void
+    public function test_admin_can_attach_and_download_multiple_lease_documents(): void
     {
         $admin = User::factory()->create();
         $lease = $this->createLease();
@@ -52,9 +52,14 @@ class LeaseDocumentWorkflowTest extends TestCase
             ->assertNotFound();
 
         $this->actingAs($admin)
-            ->delete(route('admin.leases.documents.destroy', [$lease, $contract]))
-            ->assertRedirect(route('admin.leases.show', $lease));
-        $this->assertDatabaseMissing('lease_documents', ['id' => $contract->id]);
+            ->get(route('admin.leases.show', $lease))
+            ->assertOk()
+            ->assertSee('Anexar documentos')
+            ->assertSee('Baixar')
+            ->assertDontSee('Remover este documento da ficha do aluguel?');
+
+        $this->assertNull(app('router')->getRoutes()->getByName('admin.leases.documents.destroy'));
+        $this->assertDatabaseHas('lease_documents', ['id' => $contract->id]);
     }
 
     public function test_client_cannot_access_admin_lease_documents(): void

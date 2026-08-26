@@ -22,10 +22,11 @@ class BillingService
                 $dueDate = $referenceMonth->copy()->day(min($lease->due_day, $referenceMonth->daysInMonth));
                 $charge = Charge::firstOrCreate([
                     'lease_id' => $lease->id,
-                    'type' => 'rent',
-                    'reference_month' => $referenceMonth->toDateTimeString(),
+                    'generation_key' => 'rent:'.$referenceMonth->format('Y-m'),
                 ], [
                     'client_id' => $lease->client_id,
+                    'type' => 'rent',
+                    'reference_month' => $referenceMonth->toDateTimeString(),
                     'due_date' => $dueDate->toDateString(),
                     'amount' => $lease->rent_amount,
                     'status' => 'open',

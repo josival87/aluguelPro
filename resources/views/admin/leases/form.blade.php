@@ -20,7 +20,7 @@
             <select name="client_id" required>
                 <option value="">Selecione</option>
                 @foreach($clients as $client)
-                    <option value="{{ $client->id }}" @selected(old('client_id', $lease->client_id) == $client->id)>{{ $client->name }} - {{ $client->cpf }} - {{ $client->active_leases_count }} {{ (int) $client->active_leases_count === 1 ? 'aluguel ativo' : 'aluguéis ativos' }}</option>
+                    <option value="{{ $client->id }}" @selected(old('client_id', $lease->client_id) == $client->id)>{{ $client->name }} - {{ $client->cpf_formatted }} - {{ $client->active_leases_count }} {{ (int) $client->active_leases_count === 1 ? 'aluguel ativo' : 'aluguéis ativos' }}</option>
                 @endforeach
             </select>
         </div>

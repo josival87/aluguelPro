@@ -1,7 +1,7 @@
 <article class="contract-content">
     <h1>CONTRATO DE LOCAÇÃO DE IMÓVEL</h1>
     <p><strong>LOCADOR/ADMINISTRADOR:</strong> {{ $company?->name ?? $lease->property->group->responsible_name }}, inscrito no CNPJ {{ $company?->cnpj ?? 'a informar' }}, responsável pelo grupo {{ $lease->property->group->name }}.</p>
-    <p><strong>LOCATÁRIO:</strong> {{ $lease->client->name }}, CPF {{ $lease->client->cpf }}, RG {{ $lease->client->rg }}, profissão {{ $lease->client->profession }}.</p>
+    <p><strong>LOCATÁRIO:</strong> {{ $lease->client->name }}, CPF {{ $lease->client->cpf_formatted }}, RG {{ $lease->client->rg }}, profissão {{ $lease->client->profession }}.</p>
     <p><strong>IMÓVEL:</strong> {{ $lease->property->title }}, situado à {{ $lease->property->street }}{{ $lease->property->number ? ', '.$lease->property->number : '' }}, {{ $lease->property->neighborhood }}, {{ $lease->property->city }}/{{ $lease->property->state }}.</p>
 
     <h2>1. Prazo e valor</h2>

@@ -36,9 +36,16 @@ class AdminClientRegistrationTest extends TestCase
         $client = Client::query()->sole();
 
         $this->assertNull($client->user_id);
+        $this->assertSame('12345678900', $client->cpf);
+        $this->assertSame('123.456.789-00', $client->cpf_formatted);
         $this->assertSame('12.345.678-9 SSP/PE', $client->rg);
         $this->assertNull($client->profession);
         $this->assertSame(1, User::query()->count());
+
+        $this->actingAs($admin)
+            ->get(route('admin.clients.index', ['q' => '123.456.789-00']))
+            ->assertOk()
+            ->assertSeeText('123.456.789-00');
     }
 
     public function test_admin_can_create_portal_access_later_by_setting_the_client_password(): void

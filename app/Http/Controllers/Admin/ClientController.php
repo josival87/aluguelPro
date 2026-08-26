@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\User;
+use App\Support\Cpf;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,16 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $clients = Client::query()->withCount('leases')->when($request->q, fn ($q, $term) => $q->where(fn ($sub) => $sub->where('name', 'ilike', "%{$term}%")->orWhere('cpf', 'like', "%{$term}%")))->latest()->paginate(15)->withQueryString();
+        $clients = Client::query()->withCount('leases')->when($request->q, function ($query, $term) {
+            $cpf = Cpf::digits($term);
+
+            $query->where(function ($sub) use ($term, $cpf) {
+                $sub->whereLike('name', "%{$term}%", caseSensitive: false);
+                if ($cpf !== null) {
+                    $sub->orWhere('cpf', 'like', "%{$cpf}%");
+                }
+            });
+        })->latest()->paginate(15)->withQueryString();
 
         return view('admin.clients.index', compact('clients'));
     }
@@ -64,7 +74,7 @@ class ClientController extends Controller
                 $client->user->update([
                     'name' => $data['name'],
                     'email' => $data['email'],
-                    'login' => preg_replace('/\D/', '', $data['cpf']),
+                    'login' => $data['cpf'],
                     'cpf' => $data['cpf'],
                     'phone' => $data['phone'],
                     ...(! empty($data['password']) ? ['password' => $data['password']] : []),
@@ -89,9 +99,11 @@ class ClientController extends Controller
 
     private function validated(Request $request, ?Client $client = null): array
     {
+        $request->merge(['cpf' => Cpf::digits($request->input('cpf'))]);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'], 'phone' => ['required', 'string', 'max:20'],
-            'cpf' => ['required', 'string', 'max:14', Rule::unique('clients')->ignore($client)],
+            'cpf' => ['required', 'digits:11', Rule::unique('clients')->ignore($client)],
             'rg' => ['required', 'string', 'max:30'],
             'profession' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($client?->user_id)],
@@ -100,6 +112,7 @@ class ClientController extends Controller
             'documents' => ['nullable', 'array', 'max:5'],
             'documents.*' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
         ], [
+            'cpf.digits' => 'O CPF deve conter 11 números.',
             'rg.required' => 'Informe o RG do cliente.',
             'rg.max' => 'O RG deve ter no máximo 30 caracteres.',
             'profession.max' => 'A profissão deve ter no máximo 255 caracteres.',
@@ -120,7 +133,7 @@ class ClientController extends Controller
     {
         return [
             'name' => $data['name'], 'email' => $data['email'],
-            'login' => preg_replace('/\D/', '', $data['cpf']),
+            'login' => $data['cpf'],
             'cpf' => $data['cpf'], 'phone' => $data['phone'], 'role' => 'client',
             'password' => $data['password'],
         ];
