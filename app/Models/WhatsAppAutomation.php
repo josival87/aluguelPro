@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MoneyCalculator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -13,6 +14,8 @@ class WhatsAppAutomation extends Model
     public const DUE_IN_5_DAYS = 'due_in_5_days';
 
     public const DUE_TODAY = 'due_today';
+
+    public const OVERDUE = 'overdue';
 
     public const GROUP_DUE_TODAY = 'responsible_due_today';
 
@@ -28,6 +31,12 @@ class WhatsAppAutomation extends Model
             'schedule' => 'No dia do vencimento da cobrança',
             'recipient' => 'Cliente',
             'default_message' => 'Olá, {{cliente}}! Sua cobrança de {{valor}} vence hoje ({{vencimento}}). Imóvel: {{imovel}}.',
+        ],
+        self::OVERDUE => [
+            'name' => 'Cobrança em atraso',
+            'schedule' => 'A cada 3 dias enquanto a cobrança permanecer vencida e em aberto',
+            'recipient' => 'Cliente',
+            'default_message' => 'Olá, {{cliente}}! Sua cobrança de {{descricao}}, vencida em {{vencimento}}, permanece em atraso. Dias de atraso: {{dias_atraso}}. Valor atualizado: {{valor_atualizado}}. Imóvel: {{imovel}}.',
         ],
         self::GROUP_DUE_TODAY => [
             'name' => 'Vencimento para o grupo',
@@ -73,11 +82,17 @@ class WhatsAppAutomation extends Model
     public function render(Charge $charge): string
     {
         $charge->loadMissing('client', 'lease.property.group');
+        $payable = app(MoneyCalculator::class)->payable(
+            $charge,
+            now(config('business.billing_timezone', 'America/Sao_Paulo')),
+        );
 
         return strtr($this->message, [
             '{{cliente}}' => $charge->client->name,
             '{{valor}}' => 'R$ '.number_format((float) $charge->amount, 2, ',', '.'),
+            '{{valor_atualizado}}' => 'R$ '.number_format($payable['total'], 2, ',', '.'),
             '{{vencimento}}' => $charge->due_date->format('d/m/Y'),
+            '{{dias_atraso}}' => (string) $payable['days_late'],
             '{{imovel}}' => $charge->lease->property->title,
             '{{grupo}}' => $charge->lease->property->group->name,
             '{{descricao}}' => $charge->description ?: 'Cobrança de aluguel',

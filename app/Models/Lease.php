@@ -57,4 +57,9 @@ class Lease extends Model
     {
         return $this->hasMany(LeaseDocument::class);
     }
+
+    public function notificationLogs()
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
 }

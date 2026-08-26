@@ -99,7 +99,7 @@
     <div class="whatsapp-automation-head">
         <div>
             <h2>Mensagens automáticas</h2>
-            <p>O agendador executa estas três rotinas diariamente e evita repetir o mesmo aviso no mesmo dia.</p>
+            <p>O agendador executa estas rotinas diariamente e evita repetir o mesmo aviso no mesmo dia.</p>
         </div>
         <button class="btn" type="submit"><x-icon name="check"/> Salvar mensagens</button>
     </div>
@@ -122,7 +122,9 @@
                         <span>Variáveis disponíveis:</span>
                         <code>@{{cliente}}</code>
                         <code>@{{valor}}</code>
+                        <code>@{{valor_atualizado}}</code>
                         <code>@{{vencimento}}</code>
+                        <code>@{{dias_atraso}}</code>
                         <code>@{{imovel}}</code>
                         <code>@{{grupo}}</code>
                         <code>@{{descricao}}</code>

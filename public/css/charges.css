@@ -20,7 +20,7 @@
     top: calc(100% + 4px);
     left: 0;
     z-index: 20;
-    min-width: 120px;
+    min-width: 210px;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 9px;

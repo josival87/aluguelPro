@@ -50,7 +50,19 @@ class LeaseController extends Controller
 
     public function show(Lease $lease, PixService $pix)
     {
-        $lease->load('client.documents', 'property.group', 'charges', 'solarConfig.readings.charge', 'contract.template', 'contract.signatures', 'documents.uploader');
+        $lease->load([
+            'client.documents',
+            'property.group',
+            'charges',
+            'solarConfig.readings.charge',
+            'contract.template',
+            'contract.signatures',
+            'documents.uploader',
+            'notificationLogs' => fn ($query) => $query
+                ->where('recipient_type', 'client')
+                ->with('charge')
+                ->latest(),
+        ]);
         try {
             $pix->normalizeKey((string) $lease->property->group?->pix_key);
             $pixReady = true;

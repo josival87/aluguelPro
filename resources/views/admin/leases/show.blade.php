@@ -104,5 +104,36 @@
         @empty<tr><td colspan="6" class="empty">Nenhuma cobrança gerada.</td></tr>@endforelse</tbody>
     </table></div>
 </section>
+@php($notificationEvents = [
+    'due_in_5_days' => 'Lembrete: vence em 5 dias',
+    'due_today' => 'Lembrete: vence hoje',
+    'overdue' => 'Cobrança de atraso',
+    'signature_otp' => 'Código de assinatura',
+])
+<section class="card" style="margin-top:20px">
+    <div class="page-head">
+        <div><h2>Histórico de mensagens WhatsApp</h2><p>Relatório permanente dos envios e tentativas vinculados a este aluguel.</p></div>
+        <span class="badge badge-success">{{ $lease->notificationLogs->count() }} mensagem(ns)</span>
+    </div>
+    <div class="table-wrap"><table class="responsive">
+        <thead><tr><th>Data e hora</th><th>Tipo</th><th>Cobrança</th><th>Destino</th><th>Mensagem</th><th>Status</th></tr></thead>
+        <tbody>@forelse($lease->notificationLogs as $log)
+            <tr>
+                <td data-label="Data e hora">{{ ($log->sent_at ?? $log->created_at)->timezone(config('business.billing_timezone', 'America/Sao_Paulo'))->format('d/m/Y H:i') }}</td>
+                <td data-label="Tipo">{{ $notificationEvents[$log->event] ?? str($log->event)->replace('_', ' ')->title() }}</td>
+                <td data-label="Cobrança">
+                    @if($log->charge)
+                        {{ $log->charge->type === 'solar' ? 'Energia solar' : 'Aluguel' }} · {{ $log->charge->reference_month->translatedFormat('M/Y') }}
+                    @else
+                        —
+                    @endif
+                </td>
+                <td data-label="Destino">{{ $log->recipient }}</td>
+                <td data-label="Mensagem" style="min-width:280px;white-space:normal">{{ $log->message }}@if($log->error)<small style="display:block;color:var(--red);margin-top:5px">{{ $log->error }}</small>@endif</td>
+                <td data-label="Status"><x-status :value="$log->status"/></td>
+            </tr>
+        @empty<tr><td colspan="6" class="empty">Nenhuma mensagem WhatsApp foi registrada para este cliente neste aluguel.</td></tr>@endforelse</tbody>
+    </table></div>
+</section>
 @if($lease->has_solar_energy)<section class="card" style="margin-top:20px"><div class="page-head"><div><h2>Histórico solar</h2><p>Leituras e consumo mensal.</p></div><a class="btn btn-outline btn-sm" href="{{ route('admin.solar.create',['lease'=>$lease->id]) }}"><x-icon name="camera"/> Nova medição</a></div>@forelse($lease->solarConfig?->readings ?? [] as $reading)<div class="list-row"><span class="metric-icon"><x-icon name="sun"/></span><span class="list-row-main"><strong>{{ $reading->reference_month->translatedFormat('F/Y') }}</strong><small>{{ $reading->previous_reading }} → {{ $reading->meter_reading }} kWh · OCR {{ $reading->ocr_status }}</small></span><span class="amount">{{ $reading->consumption_kwh }} kWh<br>R$ {{ number_format((float)$reading->amount,2,',','.') }}</span></div>@empty<div class="empty">Nenhuma medição registrada.</div>@endforelse</section>@endif
 @endsection

@@ -97,6 +97,7 @@ class ContractController extends Controller
             "AlugaPro: seu código de assinatura é {$code}. Ele expira em ".config('business.otp_expiration_minutes').' minutos.',
             'signature_otp',
             $type,
+            $contract->lease,
         );
 
         if (app()->isLocal()) {
@@ -265,5 +266,6 @@ class ContractController extends Controller
         }
         else abort_unless($request->user()->isAdmin(),403);
     }
+
     private function hashCode(string $code): string{return hash('sha256',$code.'|'.config('app.key'));}
 }

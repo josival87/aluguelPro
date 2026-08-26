@@ -43,12 +43,13 @@ class WhatsAppIntegrationTest extends TestCase
             ->assertSee('Conectar WhatsApp');
     }
 
-    public function test_admin_can_update_the_three_automatic_messages(): void
+    public function test_admin_can_update_the_automatic_messages(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $messages = [
             WhatsAppAutomation::DUE_IN_5_DAYS => 'Mensagem cinco dias para {{cliente}}.',
             WhatsAppAutomation::DUE_TODAY => 'Mensagem do vencimento de {{valor}}.',
+            WhatsAppAutomation::OVERDUE => 'Mensagem de atraso há {{dias_atraso}} dias no valor de {{valor_atualizado}}.',
             WhatsAppAutomation::GROUP_DUE_TODAY => 'Mensagem para {{grupo}} sobre {{imovel}}.',
         ];
 

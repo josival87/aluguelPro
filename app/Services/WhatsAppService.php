@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Charge;
+use App\Models\Lease;
 use App\Models\NotificationLog;
 use Throwable;
 
@@ -10,9 +11,9 @@ class WhatsAppService
 {
     public function __construct(private readonly WppConnectClient $client) {}
 
-    public function send(string $phone, string $message, string $event, string $recipientType, ?Charge $charge = null): NotificationLog
+    public function send(string $phone, string $message, string $event, string $recipientType, Charge|Lease|null $context = null): NotificationLog
     {
-        return $this->sendText($phone, $message, $event, $recipientType, $charge);
+        return $this->sendText($phone, $message, $event, $recipientType, $context);
     }
 
     public function sendText(
@@ -20,10 +21,11 @@ class WhatsAppService
         string $message,
         string $event,
         string $recipientType,
-        ?Charge $charge = null,
+        Charge|Lease|null $context = null,
     ): NotificationLog {
         $log = NotificationLog::create([
-            'charge_id' => $charge?->id,
+            'lease_id' => $context instanceof Lease ? $context->id : $context?->lease_id,
+            'charge_id' => $context instanceof Charge ? $context->id : null,
             'recipient' => $phone,
             'recipient_type' => $recipientType,
             'event' => $event,
@@ -58,10 +60,11 @@ class WhatsAppService
         string $caption,
         string $event,
         string $recipientType,
-        ?Charge $charge = null,
+        Charge|Lease|null $context = null,
     ): NotificationLog {
         $log = NotificationLog::create([
-            'charge_id' => $charge?->id,
+            'lease_id' => $context instanceof Lease ? $context->id : $context?->lease_id,
+            'charge_id' => $context instanceof Charge ? $context->id : null,
             'recipient' => $phone,
             'recipient_type' => $recipientType,
             'event' => $event,

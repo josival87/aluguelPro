@@ -19,10 +19,14 @@ $labels = [
     'paid' => 'Pago',
     'signed' => 'Assinado',
     'draft' => 'Rascunho',
+    'queued' => 'Na fila',
+    'sent' => 'Enviada',
+    'simulated' => 'Simulada',
+    'failed' => 'Falhou',
 ];
-$class = in_array($value, ['available', 'active', 'paid', 'signed'], true)
+$class = in_array($value, ['available', 'active', 'paid', 'signed', 'sent'], true)
     ? 'success'
-    : (in_array($value, ['closed', 'cancelled', 'rejected', 'inactive'], true) ? 'danger' : 'warning');
+    : (in_array($value, ['closed', 'cancelled', 'rejected', 'inactive', 'failed'], true) ? 'danger' : 'warning');
 @endphp
 
 <span {{ $attributes->merge(['class' => 'badge badge-'.$class]) }}>{{ $labels[$value] ?? ucfirst(str_replace('_', ' ', $value)) }}</span>

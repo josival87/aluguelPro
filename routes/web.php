@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::get('/cobrancas', [ChargeController::class, 'index'])->name('charges.index');
     Route::post('/cobrancas/gerar', [ChargeController::class, 'generate'])->name('charges.generate');
     Route::post('/cobrancas/{charge}/pix', [ChargeController::class, 'pix'])->name('charges.pix');
+    Route::post('/cobrancas/{charge}/cobrar-atraso', [ChargeController::class, 'sendOverdueNotice'])->middleware('throttle:10,1')->name('charges.overdue-notice');
     Route::patch('/cobrancas/{charge}/pagar', [ChargeController::class, 'paid'])->name('charges.paid');
     Route::patch('/cobrancas/{charge}/reabrir', [ChargeController::class, 'reopen'])->name('charges.reopen');
     Route::get('/medicao-solar', [SolarReadingController::class, 'create'])->name('solar.create');
