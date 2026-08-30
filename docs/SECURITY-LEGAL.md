@@ -39,6 +39,10 @@ Para produção, integre a API Pix do banco/PSP da imobiliária, persistindo `pr
 
 `WhatsAppService` utiliza o WPPConnect para iniciar uma sessão por QR Code e enviar texto ou imagem. A URL, a sessão e a secret key são configuradas no menu administrativo; secret key e JWT ficam criptografados no banco. Sem configuração, as mensagens são simuladas e auditadas. Antes da produção, proteja o servidor WPPConnect em rede privada/HTTPS e implemente opt-out, idempotência e monitoramento da sessão.
 
+## Mia
+
+A chave Bearer da API de recebimentos permanece somente no ambiente do servidor e não é persistida em `mia_receipts` nem incluída nos logs. A tabela guarda o snapshot financeiro necessário para idempotência e auditoria. Restrinja o acesso a ela e inclua esses dados na política de retenção e nos controles de backup.
+
 ## Assinatura eletrônica
 
 O fluxo OTP fornece aceite eletrônico e evidências técnicas, mas não equivale automaticamente a uma assinatura qualificada ICP-Brasil. O nível de assinatura necessário depende do documento, risco e orientação jurídica. Para maior força probatória, integre um provedor de assinatura, carimbo do tempo e relatório de evidências verificável.

@@ -11,6 +11,7 @@ Plataforma web responsiva para imobiliárias administrarem imóveis, interessado
 - Contratos residencial e comercial iniciais, variáveis `{{nome_cliente}}`, `{{cpf_cliente}}` e demais dados do domínio, editor rico para ajustes finais, versão imutável por aluguel, hash SHA-256, assinatura por código temporário via WhatsApp e trilha de evidências.
 - Ficha do aluguel com múltiplos documentos em Base64 no PostgreSQL, incluindo contratos antigos, aditivos, vistorias, comprovantes e outros arquivos, com download protegido e verificação SHA-256.
 - Medição solar por foto, OCR separado em FastAPI/OpenCV/Tesseract, confirmação humana e cálculo por diferença de leituras.
+- Envio idempotente de baixas de aluguel e energia solar do grupo configurado para a API de recebimentos da Mia.
 - Worker de filas, agendador, PostgreSQL, Nginx e serviços Docker prontos para VPS.
 
 ## Execução local
@@ -71,6 +72,10 @@ O LCD da foto é escuro e reflexivo. O OCR local não atingiu confiança suficie
 | `PIX_EXPIRATION_MINUTES` | Validade local de cada código Pix |
 | `OTP_EXPIRATION_MINUTES` | Validade do código de assinatura |
 | `OCR_MIN_CONFIDENCE` | Confiança mínima para sugerir uma leitura |
+| `MIA_ENABLED` | Ativa o envio assíncrono de recebimentos para a Mia |
+| `MIA_API_TOKEN` / `MIA_CLIENT_ID` | Credencial do AlugaPro e ID da API do cliente na Mia |
+| `MIA_PROPERTY_GROUP_ID` | ID do grupo do AlugaPro que deve ser integrado (recomendado) |
+| `MIA_PROPERTY_GROUP_NAME` | Nome alternativo do grupo quando o ID não for informado |
 | `WPP_CONNECT_URL` | URL interna do servidor (`http://wppconnect:21465` no Compose) |
 | `WPP_CONNECT_SESSION` | Identificador persistente da sessão do WhatsApp |
 | `WPP_CONNECT_SECRET_KEY` | Chave usada para emitir o token de acesso da sessão |

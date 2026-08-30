@@ -23,6 +23,17 @@ return [
         'timeout' => (int) env('OPENAI_TIMEOUT', 30),
     ],
 
+    'mia' => [
+        'enabled' => (bool) env('MIA_ENABLED', false),
+        'url' => env('MIA_API_URL', 'https://jbmj.io/mia'),
+        'token' => env('MIA_API_TOKEN'),
+        'client_id' => env('MIA_CLIENT_ID'),
+        'property_group_id' => env('MIA_PROPERTY_GROUP_ID'),
+        'property_group_name' => env('MIA_PROPERTY_GROUP_NAME', 'Melo Jr'),
+        'connect_timeout' => (int) env('MIA_CONNECT_TIMEOUT', 5),
+        'timeout' => (int) env('MIA_TIMEOUT', 15),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

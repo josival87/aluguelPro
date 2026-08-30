@@ -46,7 +46,7 @@ class ChargeController extends Controller
         return back()->with('success', "{$count} cobrança(s) criada(s).");
     }
 
-    public function storeOneOff(Request $request, Lease $lease): RedirectResponse
+    public function storeOneOff(Request $request, Lease $lease, ChargePaymentService $payments): RedirectResponse
     {
         $data = $request->validate([
             'type' => ['required', Rule::in(['rent', 'solar'])],
@@ -64,18 +64,22 @@ class ChargeController extends Controller
         $paid = $data['status'] === 'paid';
         $typeLabel = $data['type'] === 'solar' ? 'energia solar' : 'aluguel';
 
-        $lease->charges()->create([
+        $charge = $lease->charges()->create([
             'client_id' => $lease->client_id,
             'type' => $data['type'],
             'generation_key' => null,
             'reference_month' => Carbon::createFromFormat('Y-m-d', $data['due_date'])->startOfMonth(),
             'due_date' => $data['due_date'],
             'amount' => $data['amount'],
-            'status' => $data['status'],
+            'status' => 'open',
             'description' => 'Cobrança avulsa de '.$typeLabel,
-            'paid_at' => $paid ? now() : null,
-            'payment_method' => $paid ? 'manual' : null,
+            'paid_at' => null,
+            'payment_method' => null,
         ]);
+
+        if ($paid) {
+            $payments->settle($charge, 'manual');
+        }
 
         return redirect()
             ->to(route('admin.leases.show', $lease).'#cobrancas')

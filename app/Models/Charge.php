@@ -54,6 +54,11 @@ class Charge extends Model
         return $this->hasMany(NotificationLog::class);
     }
 
+    public function miaReceipt()
+    {
+        return $this->hasOne(MiaReceipt::class);
+    }
+
     public function getDisplayStatusAttribute(): string
     {
         if ($this->status === 'paid') {

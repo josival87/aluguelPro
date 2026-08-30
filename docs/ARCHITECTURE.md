@@ -12,6 +12,7 @@ flowchart LR
     L --> O["FastAPI OCR"]
     O --> T["OpenCV + Tesseract"]
     L -. "sessão JWT + QR Code" .-> W["Servidor WPPConnect"]
+    Q --> M["API de recebimentos da Mia"]
     L -. "evolução para cobrança dinâmica" .-> PSP["PSP Pix"]
 ```
 
@@ -33,7 +34,7 @@ As consultas do portal validam vínculo entre o usuário autenticado e o cliente
 | Identidade | `users`, `clients`, `client_documents` |
 | Imóveis | `groups`, `properties`, `property_photos`, `features` |
 | Locação | `leases`, `lease_documents`, `condominium_rules` |
-| Financeiro | `charges`, `pix_payments`, `notification_logs` |
+| Financeiro | `charges`, `pix_payments`, `notification_logs`, `mia_receipts` |
 | Energia | `solar_configs`, `solar_readings` |
 | Contratos | `contracts` (modelos-base), `lease_contracts` (versões por aluguel), `contract_signatures`, `otp_codes` |
 | Configuração | `companies`, `menus`, `whatsapp_settings` |
@@ -67,6 +68,7 @@ Regras de integridade: uma medição por configuração/mês, leitura atual não
 ## Decisões de consistência
 
 - Geração mensal usa `firstOrCreate` e índice único, portanto pode ser repetida sem duplicar aluguel.
+- A baixa elegível e seu snapshot em `mia_receipts` são gravados na mesma transação; o worker envia depois usando um `external_id` estável por cobrança.
 - Cobranças solares usam `updateOrCreate` dentro de transação.
 - Cada imóvel referencia um modelo-base de `contracts`. Ao criar o aluguel, as variáveis `{{...}}` são substituídas e uma cópia independente é gravada em `lease_contracts` com os estados `in_production`, `finalized`, `awaiting_signatures` e `signed`.
 - Alterações posteriores no modelo-base não modificam versões já geradas. O contrato final armazena conteúdo, hash SHA-256 e os resumos das assinaturas do locatário e do locador.

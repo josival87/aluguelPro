@@ -19,3 +19,6 @@ Schedule::command('billing:remind')
     ->dailyAt('09:00')
     ->timezone($billingTimezone)
     ->withoutOverlapping();
+Schedule::command('mia:dispatch-pending')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
