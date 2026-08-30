@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'login', 'cpf', 'phone', 'role', 'active', 'password'])]
+#[Fillable(['name', 'email', 'login', 'cpf', 'phone', 'role', 'group_id', 'active', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -50,6 +50,11 @@ class User extends Authenticatable
         return $this->hasOne(Client::class);
     }
 
+    public function group()
+    {
+        return $this->belongsTo(PropertyGroup::class, 'group_id');
+    }
+
     public function adminAiConversations()
     {
         return $this->hasMany(AdminAiConversation::class);
@@ -58,5 +63,10 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return in_array($this->role, ['admin', 'manager'], true);
+    }
+
+    public function hasAllGroupsAccess(): bool
+    {
+        return $this->isAdmin() && $this->group_id === null;
     }
 }

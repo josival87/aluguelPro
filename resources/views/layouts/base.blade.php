@@ -23,7 +23,7 @@
             <a class="{{ request()->routeIs('admin.dashboard')?'active':'' }}" href="{{ route('admin.dashboard') }}"><x-icon name="dashboard"/> Dashboard</a>
             <details class="nav-details" {{ request()->routeIs('admin.charges.*')?'open':'' }}>
                 <summary><span><x-icon name="calendar"/> Cobranças</span><x-icon name="chevron" size="16"/></summary>
-                <a href="{{ route('admin.charges.index') }}">Todos os grupos</a>
+                @if(auth()->user()->hasAllGroupsAccess())<a href="{{ route('admin.charges.index') }}">Todos os grupos</a>@endif
                 @foreach($navGroups as $navGroup)<a href="{{ route('admin.charges.index',['group'=>$navGroup->id]) }}">{{ $navGroup->name }}</a>@endforeach
             </details>
             <a class="{{ request()->routeIs('admin.assistant.*')?'active':'' }}" href="{{ route('admin.assistant.index') }}"><x-icon name="sparkles"/> Assistente IA</a>
@@ -38,7 +38,7 @@
             <a class="{{ request()->routeIs('admin.solar.*')?'active':'' }}" href="{{ route('admin.solar.create') }}"><x-icon name="sun"/> Medição solar</a>
             <a class="{{ request()->routeIs('admin.features.*')?'active':'' }}" href="{{ route('admin.features.index') }}"><x-icon name="tag"/> Características</a>
         </nav>
-        <form method="post" action="{{ route('logout') }}" class="sidebar-user">@csrf<button><span class="avatar">{{ mb_substr(auth()->user()->name,0,1) }}</span><span>{{ auth()->user()->name }}<small>Sair da conta</small></span><x-icon name="logout"/></button></form>
+        <form method="post" action="{{ route('logout') }}" class="sidebar-user">@csrf<button><span class="avatar">{{ mb_substr(auth()->user()->name,0,1) }}</span><span>{{ auth()->user()->name }}<small>{{ auth()->user()->group?->name ?? 'Todos os grupos' }} · Sair</small></span><x-icon name="logout"/></button></form>
     </aside>
     <header class="mobile-top">
         <a class="brand" href="{{ route('admin.dashboard') }}"><span class="brand-mark">A</span>Aluga<strong>Pro</strong></a>

@@ -2,10 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAdminGroupScope;
+use App\Models\Scopes\AdminGroupScope;
 use Illuminate\Database\Eloquent\Model;
 
 class Charge extends Model
 {
+    use HasAdminGroupScope;
+
+    protected const ADMIN_GROUP_SCOPE_MODE = AdminGroupScope::RELATION;
+
+    protected const ADMIN_GROUP_SCOPE_KEY = 'lease.property';
+
     protected $fillable = [
         'lease_id', 'client_id', 'type', 'generation_key', 'reference_month', 'due_date', 'amount',
         'status', 'description', 'paid_at', 'payment_method',

@@ -34,7 +34,7 @@ class SolarReadingController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'lease_id' => ['required', 'exists:leases,id'], 'reference_month' => ['required', 'date_format:Y-m'], 'meter_reading' => ['required', 'numeric', 'min:0'],
+            'lease_id' => ['required', 'integer'], 'reference_month' => ['required', 'date_format:Y-m'], 'meter_reading' => ['required', 'numeric', 'min:0'],
             'photo' => ['required', 'image', 'max:8192'], 'ocr_reading' => ['nullable', 'numeric', 'min:0'], 'ocr_confidence' => ['nullable', 'numeric', 'between:0,1'],
         ]);
         $lease = Lease::with('solarConfig.readings')->findOrFail($data['lease_id']);
@@ -58,6 +58,6 @@ class SolarReadingController extends Controller
             ]);
         });
 
-        return redirect()->route('admin.leases.show', $lease)->with('success', "Medição registrada: {$consumption} kWh, total R$ ".number_format($amount,2,',','.').'.');
+        return redirect()->route('admin.leases.show', $lease)->with('success', "Medição registrada: {$consumption} kWh, total R$ ".number_format($amount, 2, ',', '.').'.');
     }
 }

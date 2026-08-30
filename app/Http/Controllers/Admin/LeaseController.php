@@ -129,6 +129,8 @@ class LeaseController extends Controller
             'initial_reading' => ['nullable', 'required_if:has_solar_energy,1', 'numeric', 'min:0'], 'price_per_kwh' => ['nullable', 'required_if:has_solar_energy,1', 'numeric', 'min:0'],
         ]);
         $data['has_solar_energy'] = $request->boolean('has_solar_energy');
+        Property::query()->findOrFail($data['property_id']);
+        Client::query()->findOrFail($data['client_id']);
         if ($data['status'] === 'awaiting_signatures' && $lease?->contract?->status !== 'awaiting_signatures') {
             throw ValidationException::withMessages(['status' => 'Envie o contrato finalizado para assinatura pela ficha do aluguel.']);
         }

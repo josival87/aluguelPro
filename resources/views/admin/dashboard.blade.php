@@ -17,7 +17,7 @@
         <details class="dashboard-charge-menu">
             <summary class="btn btn-outline"><x-icon name="calendar"/><span>Cobranças</span><x-icon name="chevron" size="16"/></summary>
             <div class="dashboard-charge-options">
-                <strong>Selecione o grupo</strong>
+                <strong>{{ auth()->user()->hasAllGroupsAccess() ? 'Selecione o grupo' : 'Cobranças do grupo' }}</strong>
                 @forelse($groups as $group)
                     <a href="{{ route('admin.charges.index', ['group' => $group->id]) }}">{{ $group->name }}</a>
                 @empty

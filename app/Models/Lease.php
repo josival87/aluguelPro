@@ -2,10 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAdminGroupScope;
+use App\Models\Scopes\AdminGroupScope;
 use Illuminate\Database\Eloquent\Model;
 
 class Lease extends Model
 {
+    use HasAdminGroupScope;
+
+    protected const ADMIN_GROUP_SCOPE_MODE = AdminGroupScope::RELATION;
+
+    protected const ADMIN_GROUP_SCOPE_KEY = 'property';
+
     public const IN_FORCE_STATUSES = ['active'];
 
     public const CLOSED_STATUSES = ['closed', 'cancelled'];

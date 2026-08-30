@@ -2,13 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAdminGroupScope;
+use App\Models\Scopes\AdminGroupScope;
 use App\Support\Cpf;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
 {
-    protected $fillable = ['user_id', 'name', 'phone', 'cpf', 'rg', 'profession', 'email', 'family_income', 'status'];
+    use HasAdminGroupScope;
+
+    protected const ADMIN_GROUP_SCOPE_MODE = AdminGroupScope::CLIENT;
+
+    protected const ADMIN_GROUP_SCOPE_KEY = 'group_id';
+
+    protected $fillable = ['user_id', 'group_id', 'name', 'phone', 'cpf', 'rg', 'profession', 'email', 'family_income', 'status'];
 
     protected function casts(): array
     {
@@ -30,6 +38,11 @@ class Client extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(PropertyGroup::class, 'group_id');
     }
 
     public function documents()

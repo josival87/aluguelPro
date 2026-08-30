@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\User;
+use App\Support\AdminGroupContext;
 use App\Support\Cpf;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -39,6 +40,7 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request);
+        $data['group_id'] = AdminGroupContext::groupId($request->user());
         $files = $request->file('documents', []);
         DB::transaction(function () use ($data, $files) {
             $user = ! empty($data['password']) ? User::create($this->userData($data)) : null;

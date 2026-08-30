@@ -8,6 +8,7 @@ use App\Models\Feature;
 use App\Models\Property;
 use App\Models\PropertyGroup;
 use App\Models\PropertyMedia;
+use App\Support\AdminGroupContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -79,8 +80,12 @@ class PropertyController extends Controller
 
     private function validated(Request $request, ?Property $property = null): array
     {
+        if ($groupId = AdminGroupContext::groupId($request->user())) {
+            $request->merge(['group_id' => $groupId]);
+        }
+
         $data = $request->validate([
-            'group_id' => ['required', 'exists:groups,id'], 'contract_id' => ['required', 'exists:contracts,id'], 'title' => ['required', 'string', 'max:255'], 'slug' => ['nullable', 'string', 'max:255', Rule::unique('properties')->ignore($property)],
+            'group_id' => ['required', 'integer', Rule::exists('groups', 'id')], 'contract_id' => ['required', 'exists:contracts,id'], 'title' => ['required', 'string', 'max:255'], 'slug' => ['nullable', 'string', 'max:255', Rule::unique('properties')->ignore($property)],
             'description' => ['required', 'string'], 'type' => ['required', Rule::in(['residential', 'commercial'])], 'usable_area' => ['nullable', 'numeric', 'min:0'],
             'bedrooms' => ['required', 'integer', 'min:0'], 'bathrooms' => ['required', 'integer', 'min:0'], 'parking_spaces' => ['required', 'integer', 'min:0'],
             'street' => ['required', 'string', 'max:255'], 'number' => ['nullable', 'string', 'max:20'], 'complement' => ['nullable', 'string', 'max:255'],

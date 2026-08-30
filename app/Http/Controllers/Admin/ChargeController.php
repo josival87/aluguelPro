@@ -11,6 +11,7 @@ use App\Services\BillingService;
 use App\Services\ChargePaymentService;
 use App\Services\PixService;
 use App\Services\WhatsAppService;
+use App\Support\AdminGroupContext;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class ChargeController extends Controller
     public function index(Request $request)
     {
         $month = $request->filled('month') ? Carbon::createFromFormat('Y-m', $request->month)->startOfMonth() : now()->startOfMonth();
-        $groupId = $request->integer('group') ?: null;
+        $groupId = AdminGroupContext::groupId($request->user()) ?? ($request->integer('group') ?: null);
         $query = Charge::with('lease.property.group', 'client')->whereDate('reference_month', $month)->when($groupId, fn ($q) => $q->whereHas('lease.property', fn ($p) => $p->where('group_id', $groupId)));
         $charges = (clone $query)->orderBy('due_date')->get()->groupBy(fn ($charge) => $charge->due_date->day);
         $summary = [

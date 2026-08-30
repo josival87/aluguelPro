@@ -99,7 +99,8 @@ class PublicPropertyController extends Controller
                 'active' => true, 'password' => $data['password'],
             ]);
             $client = Client::create([
-                'user_id' => $user->id, 'name' => $data['name'], 'phone' => $data['phone'],
+                'user_id' => $user->id, 'group_id' => $property->group_id,
+                'name' => $data['name'], 'phone' => $data['phone'],
                 'cpf' => $data['cpf'], 'rg' => $data['rg'], 'profession' => $data['profession'],
                 'email' => $data['email'], 'family_income' => $data['family_income'],
                 'status' => 'pending',

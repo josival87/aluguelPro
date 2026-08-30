@@ -2,10 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAdminGroupScope;
+use App\Models\Scopes\AdminGroupScope;
 use Illuminate\Database\Eloquent\Model;
 
 class Property extends Model
 {
+    use HasAdminGroupScope;
+
+    protected const ADMIN_GROUP_SCOPE_MODE = AdminGroupScope::DIRECT;
+
+    protected const ADMIN_GROUP_SCOPE_KEY = 'group_id';
+
     protected $fillable = [
         'group_id', 'contract_id', 'title', 'slug', 'description', 'type', 'usable_area', 'bedrooms',
         'bathrooms', 'parking_spaces', 'street', 'number', 'complement', 'neighborhood',
