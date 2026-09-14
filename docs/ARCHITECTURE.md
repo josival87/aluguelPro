@@ -11,12 +11,13 @@ flowchart LR
     S["Scheduler Laravel"] --> L
     L --> O["FastAPI OCR"]
     O --> T["OpenCV + Tesseract"]
-    L -. "sessão JWT + QR Code" .-> W["Servidor WPPConnect"]
+    L -. "HTTPS + Bearer token" .-> W["WhatsApp Cloud API / Meta"]
+    W -. "webhooks assinados" .-> L
     Q --> M["API de recebimentos da Mia"]
     L -. "evolução para cobrança dinâmica" .-> PSP["PSP Pix"]
 ```
 
-O Laravel concentra interface, autenticação, autorização, regras de negócio e persistência. O OCR é isolado porque possui dependências próprias de visão computacional. Nginx publica apenas o frontend HTTP; banco e OCR ficam na rede interna do Compose.
+O Laravel concentra interface, autenticação, autorização, regras de negócio e persistência. O OCR é isolado porque possui dependências próprias de visão computacional. Nginx publica o frontend e o callback HTTPS da Meta; banco e OCR ficam na rede interna do Compose.
 
 ## Áreas e permissões
 

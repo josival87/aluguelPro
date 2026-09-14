@@ -22,10 +22,12 @@ $labels = [
     'draft' => 'Rascunho',
     'queued' => 'Na fila',
     'sent' => 'Enviada',
+    'delivered' => 'Entregue',
+    'read' => 'Lida',
     'simulated' => 'Simulada',
     'failed' => 'Falhou',
 ];
-$class = in_array($value, ['available', 'active', 'paid', 'waived', 'signed', 'sent'], true)
+$class = in_array($value, ['available', 'active', 'paid', 'waived', 'signed', 'sent', 'delivered', 'read'], true)
     ? 'success'
     : (in_array($value, ['closed', 'cancelled', 'rejected', 'inactive', 'failed'], true) ? 'danger' : 'warning');
 @endphp

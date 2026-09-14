@@ -21,11 +21,14 @@ use App\Http\Controllers\ClientAccessController;
 use App\Http\Controllers\ClientPortalController;
 use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\MetaWhatsAppWebhookController;
 use App\Http\Controllers\PropertyMediaController;
 use App\Http\Controllers\PublicPropertyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicPropertyController::class, 'index'])->name('properties.index');
+Route::get('/webhooks/meta/whatsapp', [MetaWhatsAppWebhookController::class, 'verify'])->name('webhooks.meta.whatsapp.verify');
+Route::post('/webhooks/meta/whatsapp', [MetaWhatsAppWebhookController::class, 'receive'])->name('webhooks.meta.whatsapp');
 Route::get('/imoveis/{property}', [PublicPropertyController::class, 'show'])->name('properties.show');
 Route::get('/imoveis/{property}/alugar', [PublicPropertyController::class, 'application'])->name('properties.application');
 Route::post('/imoveis/{property}/alugar', [PublicPropertyController::class, 'apply'])->middleware('throttle:5,1')->name('properties.apply');
@@ -52,8 +55,8 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::get('/whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
     Route::put('/whatsapp', [WhatsAppController::class, 'update'])->name('whatsapp.update');
     Route::put('/whatsapp/automacoes', [WhatsAppController::class, 'updateAutomations'])->name('whatsapp.automations.update');
-    Route::post('/whatsapp/conectar', [WhatsAppController::class, 'connect'])->middleware('throttle:10,1')->name('whatsapp.connect');
-    Route::get('/whatsapp/status', [WhatsAppController::class, 'status'])->middleware('throttle:60,1')->name('whatsapp.status');
+    Route::post('/whatsapp/validar', [WhatsAppController::class, 'verify'])->middleware('throttle:10,1')->name('whatsapp.verify');
+    Route::post('/whatsapp/teste/modelo', [WhatsAppController::class, 'sendTemplate'])->middleware('throttle:10,1')->name('whatsapp.test.template');
     Route::post('/whatsapp/teste/texto', [WhatsAppController::class, 'sendText'])->middleware('throttle:10,1')->name('whatsapp.test.text');
     Route::post('/whatsapp/teste/imagem', [WhatsAppController::class, 'sendImage'])->middleware('throttle:10,1')->name('whatsapp.test.image');
     Route::resource('usuarios', UserController::class)->parameters(['usuarios' => 'user'])->names('users')->except('show');

@@ -32,10 +32,10 @@ class WhatsAppAutomationTest extends TestCase
         [$todayCharge, $futureCharge] = $this->charges();
 
         WhatsAppSetting::create([
-            'api_url' => 'https://wppconnect.example.test',
-            'session_name' => 'alugapro',
-            'secret_key' => 'server-secret',
-            'api_token' => 'stored-jwt',
+            'graph_api_version' => 'v26.0',
+            'phone_number_id' => '123456789012345',
+            'business_account_id' => '987654321098765',
+            'access_token' => 'stored-access-token',
             'connection_status' => 'connected',
         ]);
 
@@ -51,9 +51,8 @@ class WhatsAppAutomationTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'https://wppconnect.example.test/api/alugapro/send-message' => Http::response([
-                'status' => 'success',
-                'response' => ['id' => ['_serialized' => 'automatic-message']],
+            'https://graph.facebook.com/v26.0/123456789012345/messages' => Http::response([
+                'messages' => [['id' => 'automatic-message']],
             ]),
         ]);
 
@@ -86,16 +85,16 @@ class WhatsAppAutomationTest extends TestCase
         ]);
 
         Http::assertSent(function (ClientRequest $request): bool {
-            return $request['phone'] === '5581988888888'
-                && str_starts_with($request['message'], 'HOJE |');
+            return $request['to'] === '5581988888888'
+                && str_starts_with($request['text']['body'], 'HOJE |');
         });
         Http::assertSent(function (ClientRequest $request): bool {
-            return $request['phone'] === '5581999999999'
-                && str_starts_with($request['message'], 'GRUPO |');
+            return $request['to'] === '5581999999999'
+                && str_starts_with($request['text']['body'], 'GRUPO |');
         });
         Http::assertSent(function (ClientRequest $request): bool {
-            return $request['phone'] === '5581988888888'
-                && str_starts_with($request['message'], 'FUTURA |');
+            return $request['to'] === '5581988888888'
+                && str_starts_with($request['text']['body'], 'FUTURA |');
         });
 
         $this->artisan('billing:remind')->assertSuccessful();

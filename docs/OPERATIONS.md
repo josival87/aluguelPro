@@ -9,7 +9,6 @@
 | `worker` | Processamento assíncrono de filas |
 | `scheduler` | Comandos agendados do Laravel |
 | `ocr` | Leitura de visor por FastAPI |
-| `wppconnect` | Sessão do WhatsApp, QR Code e envio de mensagens/imagens |
 | `db` | PostgreSQL com volume persistente |
 
 ## Rotinas automáticas
@@ -48,10 +47,10 @@ Não use esse comando para “corrigir” um `409`: investigue na Mia a divergê
 
 1. Configure DNS, firewall e proxy HTTPS; não publique PostgreSQL nem OCR.
 2. Copie `.env.example` para `.env`, gere `APP_KEY` e use `APP_ENV=production`, `APP_DEBUG=false`.
-3. Defina senhas fortes, gere uma `WPP_CONNECT_SECRET_KEY` longa e aleatória e revise os parâmetros contratuais.
+3. Defina senhas fortes, configure as credenciais da WhatsApp Cloud API e revise os parâmetros contratuais.
 4. Execute `docker compose up -d --build` e `docker compose exec app php artisan db:seed --class=AdminUserSeeder --force`.
 5. Troque imediatamente a senha inicial do administrador.
-6. Configure backup criptografado dos volumes PostgreSQL e WPPConnect e teste a restauração.
+6. Configure backup criptografado do PostgreSQL e teste a restauração.
 7. Monitore saúde, logs, espaço em disco, fila e expiração de certificados.
 
 ## Backup e restauração

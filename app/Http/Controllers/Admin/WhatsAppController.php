@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exceptions\WppConnectException;
+use App\Exceptions\MetaWhatsAppException;
 use App\Http\Controllers\Controller;
 use App\Models\WhatsAppAutomation;
 use App\Models\WhatsAppSetting;
+use App\Services\MetaWhatsAppClient;
 use App\Services\WhatsAppService;
-use App\Services\WppConnectClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,102 +22,145 @@ class WhatsAppController extends Controller
         return view('admin.whatsapp.index', [
             'setting' => WhatsAppSetting::current(),
             'automations' => WhatsAppAutomation::configured(),
+            'templateEvents' => WhatsAppSetting::TEMPLATE_EVENTS,
         ]);
     }
 
     public function updateAutomations(Request $request): RedirectResponse
     {
-        $keys = array_keys(WhatsAppAutomation::DEFINITIONS);
-        $rules = ['messages' => ['required', 'array:'.implode(',', $keys)]];
+        $automationKeys = array_keys(WhatsAppAutomation::DEFINITIONS);
+        $templateKeys = array_merge($automationKeys, array_keys(WhatsAppSetting::TEMPLATE_EVENTS));
+        $rules = [
+            'messages' => ['required', 'array:'.implode(',', $automationKeys)],
+            'templates' => ['nullable', 'array'],
+        ];
 
-        foreach ($keys as $key) {
+        foreach ($automationKeys as $key) {
             $rules["messages.{$key}"] = ['required', 'string', 'max:4096'];
         }
+        foreach ($templateKeys as $key) {
+            $rules["templates.{$key}.name"] = ['nullable', 'string', 'max:512', 'regex:/^[a-z0-9_]+$/'];
+            $rules["templates.{$key}.language"] = ['nullable', 'string', 'max:20', 'regex:/^[a-z]{2,3}(?:_[A-Z]{2})?$/'];
+        }
 
-        $messages = $request->validate($rules)['messages'];
+        $data = $request->validate($rules, [
+            'templates.*.name.regex' => 'O nome do modelo deve usar somente letras minúsculas, números e sublinhado.',
+            'templates.*.language.regex' => 'Informe um idioma no formato pt_BR ou en_US.',
+        ]);
 
-        foreach ($keys as $key) {
+        foreach ($automationKeys as $key) {
             WhatsAppAutomation::query()->updateOrCreate(
                 ['key' => $key],
-                ['message' => $messages[$key]],
+                ['message' => $data['messages'][$key]],
             );
         }
 
-        return back()->with('success', 'Mensagens automáticas do WhatsApp atualizadas.');
+        $templates = [];
+        foreach ($templateKeys as $key) {
+            $name = data_get($data, "templates.{$key}.name");
+            if (filled($name)) {
+                $templates[$key] = [
+                    'name' => $name,
+                    'language' => data_get($data, "templates.{$key}.language") ?: 'pt_BR',
+                ];
+            }
+        }
+
+        $setting = WhatsAppSetting::current();
+        $setting->message_templates = $templates;
+        $setting->save();
+
+        return back()->with('success', 'Mensagens e modelos da Meta atualizados.');
     }
 
     public function update(Request $request): RedirectResponse
     {
         $setting = WhatsAppSetting::current();
         $data = $request->validate([
-            'api_url' => ['required', 'url:http,https', 'max:500'],
-            'session_name' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
-            'secret_key' => [Rule::requiredIf(blank($setting->secret_key)), 'nullable', 'string', 'max:2000'],
+            'graph_api_version' => ['required', 'string', 'max:20', 'regex:/^v[0-9]+\.[0-9]+$/'],
+            'phone_number_id' => ['required', 'digits_between:5,30'],
+            'business_account_id' => ['required', 'digits_between:5,30'],
+            'access_token' => [Rule::requiredIf(blank($setting->access_token)), 'nullable', 'string', 'max:10000'],
+            'app_secret' => ['nullable', 'string', 'max:500'],
+            'webhook_verify_token' => ['nullable', 'string', 'min:16', 'max:500'],
         ], [
-            'session_name.regex' => 'O nome da sessão aceita somente letras, números, hífen e sublinhado.',
-            'secret_key.required' => 'Informe a secret key do servidor WPPConnect.',
+            'graph_api_version.regex' => 'Informe a versão no formato v26.0.',
+            'access_token.required' => 'Informe o token de acesso da Meta.',
+            'webhook_verify_token.min' => 'Use pelo menos 16 caracteres no token de verificação do webhook.',
         ]);
 
-        $apiUrl = rtrim($data['api_url'], '/');
-        $newSecret = filled($data['secret_key'] ?? null) ? $data['secret_key'] : $setting->secret_key;
+        $newAccessToken = filled($data['access_token'] ?? null) ? $data['access_token'] : $setting->access_token;
+        $newAppSecret = filled($data['app_secret'] ?? null) ? $data['app_secret'] : $setting->app_secret;
+        $newVerifyToken = filled($data['webhook_verify_token'] ?? null)
+            ? $data['webhook_verify_token']
+            : $setting->webhook_verify_token;
         $connectionChanged = ! $setting->exists
-            || $setting->api_url !== $apiUrl
-            || $setting->session_name !== $data['session_name']
-            || (filled($data['secret_key'] ?? null) && $setting->secret_key !== $data['secret_key']);
+            || $setting->graph_api_version !== $data['graph_api_version']
+            || $setting->phone_number_id !== $data['phone_number_id']
+            || $setting->business_account_id !== $data['business_account_id']
+            || (filled($data['access_token'] ?? null) && $setting->access_token !== $data['access_token'])
+            || (filled($data['app_secret'] ?? null) && $setting->app_secret !== $data['app_secret']);
 
         $setting->fill([
-            'api_url' => $apiUrl,
-            'session_name' => $data['session_name'],
-            'secret_key' => $newSecret,
+            'graph_api_version' => $data['graph_api_version'],
+            'phone_number_id' => $data['phone_number_id'],
+            'business_account_id' => $data['business_account_id'],
+            'access_token' => $newAccessToken,
+            'app_secret' => $newAppSecret,
+            'webhook_verify_token' => $newVerifyToken,
         ]);
 
         if ($connectionChanged) {
             $setting->forceFill([
-                'api_token' => null,
                 'connected_phone' => null,
                 'connection_status' => 'configured',
                 'last_error' => null,
                 'last_connected_at' => null,
+                'webhook_subscribed_at' => null,
             ]);
         }
 
         $setting->save();
 
-        return back()->with('success', 'Configuração do WPPConnect salva. Agora inicie a conexão pelo QR Code.');
+        return back()->with('success', 'Credenciais da WhatsApp Cloud API salvas. Agora valide a integração.');
     }
 
-    public function connect(WppConnectClient $client): JsonResponse
+    public function verify(MetaWhatsAppClient $client): JsonResponse
     {
         try {
-            return response()->json($client->connect());
-        } catch (WppConnectException $exception) {
+            return response()->json($client->verifyConfiguration());
+        } catch (MetaWhatsAppException $exception) {
             $this->recordFailure($exception);
 
             return response()->json(['message' => $exception->getMessage()], 422);
         }
     }
 
-    public function status(WppConnectClient $client): JsonResponse
+    public function sendTemplate(Request $request, WhatsAppService $whatsApp): RedirectResponse
     {
-        try {
-            return response()->json($client->status());
-        } catch (WppConnectException $exception) {
-            $this->recordFailure($exception);
+        $data = $request->validate([
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ()-]{8,20}$/'],
+            'template_name' => ['required', 'string', 'max:512', 'regex:/^[a-z0-9_]+$/'],
+            'language_code' => ['required', 'string', 'max:20', 'regex:/^[a-z]{2,3}(?:_[A-Z]{2})?$/'],
+        ]);
 
-            return response()->json([
-                'connected' => false,
-                'status' => 'error',
-                'phone' => null,
-                'qr_code' => null,
-                'message' => $exception->getMessage(),
-            ], 502);
-        }
+        $log = $whatsApp->sendTemplate(
+            $data['phone'],
+            $data['template_name'],
+            $data['language_code'],
+            [],
+            'Modelo Meta: '.$data['template_name'],
+            'admin_test_template',
+            'test',
+        );
+
+        return $this->deliveryResponse($log->status, $log->error, 'Modelo de teste aceito pela Meta.');
     }
 
     public function sendText(Request $request, WhatsAppService $whatsApp): RedirectResponse
     {
         $data = $request->validate([
-            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ()-]{10,20}$/'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ()-]{8,20}$/'],
             'message' => ['required', 'string', 'max:4096'],
         ]);
 
@@ -128,15 +171,15 @@ class WhatsAppController extends Controller
             'test',
         );
 
-        return $this->deliveryResponse($log->status, $log->error, 'Mensagem de teste enviada pelo WPPConnect.');
+        return $this->deliveryResponse($log->status, $log->error, 'Mensagem de teste aceita pela Meta.');
     }
 
     public function sendImage(Request $request, WhatsAppService $whatsApp): RedirectResponse
     {
         $data = $request->validate([
-            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ()-]{10,20}$/'],
-            'caption' => ['nullable', 'string', 'max:4096'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ()-]{8,20}$/'],
+            'caption' => ['nullable', 'string', 'max:1024'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ]);
 
         $file = $request->file('image');
@@ -150,9 +193,11 @@ class WhatsAppController extends Controller
             $data['caption'] ?? '',
             'admin_test_image',
             'test',
+            null,
+            $file->getMimeType(),
         );
 
-        return $this->deliveryResponse($log->status, $log->error, 'Imagem de teste enviada pelo WPPConnect.');
+        return $this->deliveryResponse($log->status, $log->error, 'Imagem de teste aceita pela Meta.');
     }
 
     private function deliveryResponse(string $status, ?string $error, string $success): RedirectResponse
@@ -162,8 +207,8 @@ class WhatsAppController extends Controller
         }
 
         $message = $status === 'simulated'
-            ? 'Configure e conecte o WPPConnect antes de testar o envio.'
-            : ($error ?: 'O WPPConnect não confirmou o envio.');
+            ? 'Configure e valide a integração com a Meta antes de testar o envio.'
+            : ($error ?: 'A Meta não confirmou o envio.');
 
         return back()->withErrors(['whatsapp' => $message]);
     }

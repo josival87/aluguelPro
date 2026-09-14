@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\ClientAccessCode;
 use App\Models\User;
+use App\Services\MetaWhatsAppClient;
 use App\Services\WhatsAppService;
-use App\Services\WppConnectClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class ClientAccessController extends Controller
         return view('auth.access', ['step' => 'phone']);
     }
 
-    public function sendCode(Request $request, WhatsAppService $whatsApp, WppConnectClient $wppConnect): RedirectResponse
+    public function sendCode(Request $request, WhatsAppService $whatsApp, MetaWhatsAppClient $metaWhatsApp): RedirectResponse
     {
         $data = $request->validate([
             'phone' => ['required', 'string', 'max:20'],
@@ -35,14 +35,14 @@ class ClientAccessController extends Controller
         ]);
 
         try {
-            $phone = $wppConnect->normalizePhone($data['phone']);
+            $phone = $metaWhatsApp->normalizePhone($data['phone']);
         } catch (InvalidArgumentException) {
             throw ValidationException::withMessages([
                 'phone' => 'Informe um telefone válido com DDD.',
             ]);
         }
 
-        $client = $this->findClientByPhone($phone, $wppConnect);
+        $client = $this->findClientByPhone($phone, $metaWhatsApp);
 
         if (! $client) {
             throw ValidationException::withMessages([
@@ -78,6 +78,8 @@ class ClientAccessController extends Controller
             "AlugaPro: seu código para solicitar acesso é {$code}. Ele expira em ".config('business.otp_expiration_minutes').' minutos. Não compartilhe este código.',
             'client_access_otp',
             'client',
+            null,
+            [$code, (string) config('business.otp_expiration_minutes')],
         );
 
         if (app()->isLocal()) {
@@ -242,15 +244,15 @@ class ClientAccessController extends Controller
         );
     }
 
-    private function findClientByPhone(string $phone, WppConnectClient $wppConnect): ?Client
+    private function findClientByPhone(string $phone, MetaWhatsAppClient $metaWhatsApp): ?Client
     {
         return Client::query()
             ->whereNotNull('phone')
             ->orderBy('id')
             ->get()
-            ->first(function (Client $client) use ($phone, $wppConnect): bool {
+            ->first(function (Client $client) use ($phone, $metaWhatsApp): bool {
                 try {
-                    return hash_equals($phone, $wppConnect->normalizePhone($client->phone));
+                    return hash_equals($phone, $metaWhatsApp->normalizePhone($client->phone));
                 } catch (InvalidArgumentException) {
                     return false;
                 }

@@ -8,9 +8,25 @@ class NotificationLog extends Model
 {
     protected $fillable = [
         'lease_id', 'charge_id', 'recipient', 'recipient_type', 'event', 'message', 'provider_reference',
-        'status', 'error', 'sent_at',
+        'status', 'error', 'sent_at', 'delivered_at', 'read_at',
     ];
-    protected function casts(): array { return ['sent_at' => 'datetime']; }
-    public function lease() { return $this->belongsTo(Lease::class); }
-    public function charge() { return $this->belongsTo(Charge::class); }
+
+    protected function casts(): array
+    {
+        return [
+            'sent_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'read_at' => 'datetime',
+        ];
+    }
+
+    public function lease()
+    {
+        return $this->belongsTo(Lease::class);
+    }
+
+    public function charge()
+    {
+        return $this->belongsTo(Charge::class);
+    }
 }

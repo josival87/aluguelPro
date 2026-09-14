@@ -38,9 +38,8 @@ class OverdueWhatsAppNoticeTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'https://wppconnect.example.test/api/alugapro/send-message' => Http::response([
-                'status' => 'success',
-                'response' => ['id' => ['_serialized' => 'manual-overdue-message']],
+            'https://graph.facebook.com/v26.0/123456789012345/messages' => Http::response([
+                'messages' => [['id' => 'manual-overdue-message']],
             ]),
         ]);
 
@@ -65,8 +64,8 @@ class OverdueWhatsAppNoticeTest extends TestCase
             'provider_reference' => 'manual-overdue-message',
         ]);
 
-        Http::assertSent(fn (ClientRequest $request): bool => $request['phone'] === '5581988880000'
-            && $request['message'] === 'ATRASO | Cliente em atraso | 6 dias | R$ 919,80 | Imóvel em atraso');
+        Http::assertSent(fn (ClientRequest $request): bool => $request['to'] === '5581988880000'
+            && $request['text']['body'] === 'ATRASO | Cliente em atraso | 6 dias | R$ 919,80 | Imóvel em atraso');
 
         $this->actingAs($admin)
             ->get(route('admin.leases.show', $lease))
@@ -85,9 +84,8 @@ class OverdueWhatsAppNoticeTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'https://wppconnect.example.test/api/alugapro/send-message' => Http::response([
-                'status' => 'success',
-                'response' => ['id' => ['_serialized' => 'automatic-overdue-message']],
+            'https://graph.facebook.com/v26.0/123456789012345/messages' => Http::response([
+                'messages' => [['id' => 'automatic-overdue-message']],
             ]),
         ]);
 
@@ -193,10 +191,10 @@ class OverdueWhatsAppNoticeTest extends TestCase
     private function configuredWhatsApp(): void
     {
         WhatsAppSetting::create([
-            'api_url' => 'https://wppconnect.example.test',
-            'session_name' => 'alugapro',
-            'secret_key' => 'server-secret',
-            'api_token' => 'stored-jwt',
+            'graph_api_version' => 'v26.0',
+            'phone_number_id' => '123456789012345',
+            'business_account_id' => '987654321098765',
+            'access_token' => 'stored-access-token',
             'connection_status' => 'connected',
         ]);
     }

@@ -124,7 +124,10 @@ class PublicPropertyController extends Controller
         $whatsApp->send(
             $property->group->phone,
             "Novo interessado: {$client->name} candidatou-se ao imóvel {$property->title}. Proposta #{$lease->id}.",
-            'new_applicant', 'responsible'
+            'new_applicant',
+            'responsible',
+            null,
+            [$client->name, $property->title, (string) $lease->id],
         );
 
         return redirect()->route('login')->with('success', 'Cadastro concluído! Sua proposta foi enviada. Entre para acompanhar.');

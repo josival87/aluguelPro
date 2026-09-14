@@ -55,6 +55,8 @@ class ClientAccessRequestTest extends TestCase
                     \Mockery::on(fn (string $message) => str_contains($message, 'código para solicitar acesso')),
                     'client_access_otp',
                     'client',
+                    null,
+                    \Mockery::on(fn (array $parameters) => count($parameters) === 2 && preg_match('/^[0-9]{6}$/', $parameters[0]) === 1),
                 )
                 ->andReturn($delivery);
         });

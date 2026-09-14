@@ -98,6 +98,7 @@ class ContractController extends Controller
             'signature_otp',
             $type,
             $contract->lease,
+            [$code, (string) config('business.otp_expiration_minutes')],
         );
 
         if (app()->isLocal()) {
@@ -106,7 +107,7 @@ class ContractController extends Controller
             $otp->delete();
 
             return back()->withErrors([
-                'whatsapp' => 'Não foi possível enviar o código pelo WhatsApp. Verifique a conexão WPPConnect e tente novamente.',
+                'whatsapp' => 'Não foi possível enviar o código pelo WhatsApp. Verifique a integração com a Meta e tente novamente.',
             ]);
         }
 
@@ -260,12 +261,16 @@ class ContractController extends Controller
 
     private function authorizeAccess(Request $request, LeaseContract $contract): void
     {
-        if($request->user()->role==='client'){
-            abort_unless(in_array($contract->status,['awaiting_signatures','signed'],true),403);
-            abort_unless($contract->lease()->where('client_id',$request->user()->client?->id)->exists(),403);
+        if ($request->user()->role === 'client') {
+            abort_unless(in_array($contract->status, ['awaiting_signatures', 'signed'], true), 403);
+            abort_unless($contract->lease()->where('client_id', $request->user()->client?->id)->exists(), 403);
+        } else {
+            abort_unless($request->user()->isAdmin(), 403);
         }
-        else abort_unless($request->user()->isAdmin(),403);
     }
 
-    private function hashCode(string $code): string{return hash('sha256',$code.'|'.config('app.key'));}
+    private function hashCode(string $code): string
+    {
+        return hash('sha256', $code.'|'.config('app.key'));
+    }
 }

@@ -2,12 +2,15 @@
 
 return [
 
-    'wppconnect' => [
-        'url' => env('WPP_CONNECT_URL'),
-        'session' => env('WPP_CONNECT_SESSION', 'alugapro'),
-        'secret_key' => env('WPP_CONNECT_SECRET_KEY'),
-        'connect_timeout' => (int) env('WPP_CONNECT_CONNECT_TIMEOUT', 5),
-        'timeout' => (int) env('WPP_CONNECT_TIMEOUT', 30),
+    'meta_whatsapp' => [
+        'graph_api_version' => env('META_WHATSAPP_GRAPH_API_VERSION', 'v26.0'),
+        'phone_number_id' => env('META_WHATSAPP_PHONE_NUMBER_ID'),
+        'business_account_id' => env('META_WHATSAPP_BUSINESS_ACCOUNT_ID'),
+        'access_token' => env('META_WHATSAPP_ACCESS_TOKEN'),
+        'app_secret' => env('META_WHATSAPP_APP_SECRET'),
+        'webhook_verify_token' => env('META_WHATSAPP_WEBHOOK_VERIFY_TOKEN'),
+        'connect_timeout' => (int) env('META_WHATSAPP_CONNECT_TIMEOUT', 5),
+        'timeout' => (int) env('META_WHATSAPP_TIMEOUT', 30),
     ],
 
     'meter_ocr' => [

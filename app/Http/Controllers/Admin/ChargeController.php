@@ -138,6 +138,7 @@ class ChargeController extends Controller
             WhatsAppAutomation::OVERDUE,
             'client',
             $charge,
+            $automation->templateParameters($charge),
         );
 
         if ($log->status === 'sent') {

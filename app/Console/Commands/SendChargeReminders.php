@@ -33,12 +33,14 @@ class SendChargeReminders extends Command
                     if ($dueDate < $todayDate) {
                         $daysLate = $calculator->payable($charge, $today)['days_late'];
                         if ($daysLate % 3 === 0 && ! $this->wasSentToday($charge, WhatsAppAutomation::OVERDUE)) {
+                            $automation = $automations->get(WhatsAppAutomation::OVERDUE);
                             $whatsApp->send(
                                 $charge->client->phone,
-                                $automations->get(WhatsAppAutomation::OVERDUE)->render($charge),
+                                $automation->render($charge),
                                 WhatsAppAutomation::OVERDUE,
                                 'client',
                                 $charge,
+                                $automation->templateParameters($charge),
                             );
                         }
 
@@ -50,24 +52,28 @@ class SendChargeReminders extends Command
                         : WhatsAppAutomation::DUE_IN_5_DAYS;
 
                     if (! $this->wasSentToday($charge, $clientEvent)) {
+                        $automation = $automations->get($clientEvent);
                         $whatsApp->send(
                             $charge->client->phone,
-                            $automations->get($clientEvent)->render($charge),
+                            $automation->render($charge),
                             $clientEvent,
                             'client',
                             $charge,
+                            $automation->templateParameters($charge),
                         );
                     }
 
                     if ($dueDate === $todayDate) {
                         $groupEvent = WhatsAppAutomation::GROUP_DUE_TODAY;
                         if (! $this->wasSentToday($charge, $groupEvent)) {
+                            $automation = $automations->get($groupEvent);
                             $whatsApp->send(
                                 $charge->lease->property->group->phone,
-                                $automations->get($groupEvent)->render($charge),
+                                $automation->render($charge),
                                 $groupEvent,
                                 'responsible',
                                 $charge,
+                                $automation->templateParameters($charge),
                             );
                         }
                     }

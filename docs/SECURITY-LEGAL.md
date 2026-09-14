@@ -37,7 +37,7 @@ Para produção, integre a API Pix do banco/PSP da imobiliária, persistindo `pr
 
 ## WhatsApp
 
-`WhatsAppService` utiliza o WPPConnect para iniciar uma sessão por QR Code e enviar texto ou imagem. A URL, a sessão e a secret key são configuradas no menu administrativo; secret key e JWT ficam criptografados no banco. Sem configuração, as mensagens são simuladas e auditadas. Antes da produção, proteja o servidor WPPConnect em rede privada/HTTPS e implemente opt-out, idempotência e monitoramento da sessão.
+`WhatsAppService` utiliza diretamente a WhatsApp Cloud API oficial da Meta para enviar texto, imagens e modelos aprovados. Token de acesso, App Secret e token de verificação ficam criptografados no banco. O webhook valida `X-Hub-Signature-256` antes de registrar os estados de entrega. Sem configuração, as mensagens são simuladas e auditadas. Em produção, use token permanente de usuário do sistema, HTTPS, modelos aprovados para mensagens proativas, consentimento/opt-out, idempotência e monitoramento de falhas e qualidade do número.
 
 ## Mia
 

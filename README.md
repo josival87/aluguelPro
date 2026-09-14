@@ -41,7 +41,7 @@ Troque essas credenciais e `DB_PASSWORD` antes de qualquer publicação.
 
 ```powershell
 docker compose ps
-docker compose logs -f app worker scheduler ocr wppconnect
+docker compose logs -f app worker scheduler ocr
 docker compose exec app php artisan migrate --force
 docker compose exec app php artisan db:seed --force
 docker compose exec app php artisan billing:generate
@@ -49,7 +49,7 @@ docker compose exec app php artisan billing:remind
 docker compose down
 ```
 
-Os dados PostgreSQL permanecem no volume `postgres_data`; os tokens e a sessão do WhatsApp permanecem em `wppconnect_tokens` e `wppconnect_userdata`. `docker compose down -v` também apaga esses volumes e não deve ser usado sem backup.
+Os dados PostgreSQL permanecem no volume `postgres_data`. `docker compose down -v` também apaga esse volume e não deve ser usado sem backup.
 
 ## Foto de referência de energia
 
@@ -76,12 +76,17 @@ O LCD da foto é escuro e reflexivo. O OCR local não atingiu confiança suficie
 | `MIA_API_TOKEN` / `MIA_CLIENT_ID` | Credencial do AlugaPro e ID da API do cliente na Mia |
 | `MIA_PROPERTY_GROUP_ID` | ID do grupo do AlugaPro que deve ser integrado (recomendado) |
 | `MIA_PROPERTY_GROUP_NAME` | Nome alternativo do grupo quando o ID não for informado |
-| `WPP_CONNECT_URL` | URL interna do servidor (`http://wppconnect:21465` no Compose) |
-| `WPP_CONNECT_SESSION` | Identificador persistente da sessão do WhatsApp |
-| `WPP_CONNECT_SECRET_KEY` | Chave usada para emitir o token de acesso da sessão |
-| `WPP_CONNECT_*_TIMEOUT` | Tempos limite da comunicação com o WPPConnect |
+| `META_WHATSAPP_GRAPH_API_VERSION` | Versão fixada da Graph API (padrão `v26.0`) |
+| `META_WHATSAPP_PHONE_NUMBER_ID` | Identificação do número remetente na Meta |
+| `META_WHATSAPP_BUSINESS_ACCOUNT_ID` | Identificação da conta WhatsApp Business (WABA) |
+| `META_WHATSAPP_ACCESS_TOKEN` | Token de usuário do sistema ou token temporário de testes |
+| `META_WHATSAPP_APP_SECRET` | Chave usada para validar a assinatura dos webhooks |
+| `META_WHATSAPP_WEBHOOK_VERIFY_TOKEN` | Segredo escolhido para a verificação inicial do webhook |
+| `META_WHATSAPP_*_TIMEOUT` | Tempos limite da comunicação com a Meta |
 
-O Compose instala e executa o WPPConnect Server. O menu administrativo **WhatsApp** usa os valores do ambiente por padrão e permite substituí-los. A conexão é concluída pela leitura do QR Code; sem configuração, os envios são simulados e gravados em `notification_logs`. A documentação local do servidor fica em [http://localhost:21465/api-docs](http://localhost:21465/api-docs).
+O menu administrativo **WhatsApp** permite configurar e validar diretamente a WhatsApp Cloud API oficial da Meta. O token, App Secret e token de verificação são criptografados no banco; valores do ambiente funcionam como padrão. A validação consulta o número e a WABA e assina o aplicativo para webhooks. Sem configuração, os envios são simulados e gravados em `notification_logs`.
+
+O callback público é `/webhooks/meta/whatsapp`. Configure esse endereço HTTPS no aplicativo da Meta, repita o token de verificação e assine o campo `messages`. O histórico é atualizado pelos estados `sent`, `delivered`, `read` e `failed`. Mensagens proativas fora da janela de atendimento de 24 horas devem usar modelos aprovados; os nomes e idiomas podem ser associados aos fluxos no mesmo menu. Consulte a [documentação oficial da Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api/) e a [coleção oficial da Meta no Postman](https://www.postman.com/meta/whatsapp-business-platform/collection/wlk6lh4/whatsapp-cloud-api).
 
 ## Documentação
 
@@ -92,7 +97,7 @@ O Compose instala e executa o WPPConnect Server. O menu administrativo **WhatsAp
 ## Verificação
 
 ```powershell
-php artisan test --testsuite=Unit
+docker compose run --rm --no-deps -v "${PWD}:/var/www/html" -w /var/www/html --entrypoint php app artisan test
 php artisan view:cache
 docker compose exec ocr pytest -q
 ```
