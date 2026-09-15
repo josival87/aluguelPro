@@ -16,6 +16,13 @@
     <div class="head-actions">
         <x-status :value="$property->status"/>
         <a class="btn btn-outline" href="{{ route('admin.properties.edit', $property) }}"><x-icon name="edit"/> Editar</a>
+        @if(auth()->user()->isAdministrator() && $property->leases->isEmpty())
+            <form method="post" action="{{ route('admin.properties.destroy', $property) }}" data-confirm="Excluir este imóvel e suas mídias cadastradas? Esta ação não pode ser desfeita.">
+                @csrf
+                @method('DELETE')
+                <button class="btn btn-danger" type="submit"><x-icon name="trash"/> Excluir</button>
+            </form>
+        @endif
     </div>
 </div>
 
@@ -98,11 +105,13 @@
                     <small>{{ $medium->mime_type }}</small>
                     <small>Adicionada em {{ $medium->created_at->format('d/m/Y H:i') }}</small>
                 </div>
-                <form method="post" action="{{ route('admin.properties.media.destroy', [$property, $medium]) }}" onsubmit="return confirm('Deseja apagar esta mídia?')">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-danger btn-sm" type="submit"><x-icon name="trash"/> Apagar</button>
-                </form>
+                @if(auth()->user()->isAdministrator())
+                    <form method="post" action="{{ route('admin.properties.media.destroy', [$property, $medium]) }}" onsubmit="return confirm('Deseja apagar esta mídia?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-danger btn-sm" type="submit"><x-icon name="trash"/> Apagar</button>
+                    </form>
+                @endif
             </article>
         @empty
             <div class="empty">Nenhuma mídia cadastrada.</div>

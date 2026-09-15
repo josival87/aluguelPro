@@ -127,10 +127,10 @@ class LeaseController extends Controller
 
     public function destroy(Lease $lease)
     {
-        abort_if($lease->charges()->exists(), 422, 'Aluguel possui cobranças. Cancele-o em vez de excluir.');
+        abort_unless($lease->status === 'closed', 422, 'Apenas aluguéis encerrados podem ser excluídos.');
         $lease->delete();
 
-        return redirect()->route('admin.leases.index')->with('success', 'Aluguel excluído.');
+        return redirect()->route('admin.leases.index')->with('success', 'Aluguel encerrado excluído.');
     }
 
     private function validated(Request $request, ?Lease $lease = null): array

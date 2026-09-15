@@ -65,6 +65,11 @@ class User extends Authenticatable
         return in_array($this->role, ['admin', 'manager'], true);
     }
 
+    public function isAdministrator(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function hasAllGroupsAccess(): bool
     {
         return $this->isAdmin() && $this->group_id === null;

@@ -12,7 +12,7 @@
         <td data-label="Nível">{{ $user->role === 'admin' ? 'Administrador' : 'Gerente' }}</td>
         <td data-label="Acesso">{{ $user->group?->name ?? 'Todos os grupos' }}</td>
         <td data-label="Status"><x-status :value="$user->active ? 'active' : 'inactive'"/></td>
-        <td><div class="actions"><a class="icon-btn" href="{{ route('admin.users.edit', $user) }}"><x-icon name="edit" size="17"/></a>@if(!$user->is(auth()->user()))<form method="post" action="{{ route('admin.users.destroy', $user) }}" data-confirm="Excluir este usuário?">@csrf @method('DELETE')<button class="icon-btn"><x-icon name="trash" size="17"/></button></form>@endif</div></td>
+        <td><div class="actions"><a class="icon-btn" href="{{ route('admin.users.edit', $user) }}"><x-icon name="edit" size="17"/></a>@if(auth()->user()->isAdministrator() && !$user->is(auth()->user()))<form method="post" action="{{ route('admin.users.destroy', $user) }}" data-confirm="Excluir este usuário?">@csrf @method('DELETE')<button class="icon-btn"><x-icon name="trash" size="17"/></button></form>@endif</div></td>
     </tr>
 @empty
     <tr><td colspan="6" class="empty">Nenhum usuário encontrado.</td></tr>

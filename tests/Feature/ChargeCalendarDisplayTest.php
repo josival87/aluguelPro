@@ -86,7 +86,7 @@ class ChargeCalendarDisplayTest extends TestCase
             ->assertSee('Recebidos(1)')
             ->assertSee('Em aberto(1)')
             ->assertSee('Aluguel da Família Silva - R$900')
-            ->assertSee('Energia Solar - R$100')
+            ->assertSee('Energia Solar · Ebm 01 - R$100')
             ->assertSee('Dar baixa')
             ->assertSee('Ver ficha')
             ->assertSee(route('admin.charges.paid', $charge), false)

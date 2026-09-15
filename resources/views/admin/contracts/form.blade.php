@@ -21,7 +21,7 @@
     </div>
     <div class="form-actions"><a class="btn btn-ghost" href="{{ route('admin.contracts.index') }}">Cancelar</a><button class="btn">Salvar contrato-base</button></div>
 </form>
-@if($contract->exists)<form method="post" action="{{ route('admin.contracts.destroy',$contract) }}" onsubmit="return confirm('Excluir este contrato-base?')">@csrf @method('DELETE')<button class="btn btn-danger btn-sm"><x-icon name="trash"/> Excluir</button></form>@endif
+@if($contract->exists && auth()->user()->isAdministrator())<form method="post" action="{{ route('admin.contracts.destroy',$contract) }}" onsubmit="return confirm('Excluir este contrato-base?')">@csrf @method('DELETE')<button class="btn btn-danger btn-sm"><x-icon name="trash"/> Excluir</button></form>@endif
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded',()=>{

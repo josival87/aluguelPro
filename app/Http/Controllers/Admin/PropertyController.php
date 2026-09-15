@@ -72,7 +72,7 @@ class PropertyController extends Controller
 
     public function destroy(Property $property)
     {
-        abort_if($property->leases()->exists(), 422, 'Imóvel possui aluguéis vinculados.');
+        abort_if($property->leases()->exists(), 422, 'Não é possível excluir um imóvel com aluguéis vinculados.');
         $property->delete();
 
         return redirect()->route('admin.properties.index')->with('success', 'Imóvel excluído.');
