@@ -39,7 +39,12 @@
             @forelse($leases as $lease)
                 <tr>
                     <td data-label="ID"><strong>#{{ $lease->id }}</strong></td>
-                    <td data-label="Cliente">{{ $lease->client->name }}</td>
+                    <td data-label="Cliente">
+                        {{ $lease->client->name }}
+                        @if($lease->nickname)
+                            <small style="display:block;color:var(--muted)">{{ $lease->nickname }}</small>
+                        @endif
+                    </td>
                     <td data-label="Imóvel"><strong>{{ $lease->property->title }}</strong><small style="display:block;color:var(--muted)">{{ $lease->property->group->name }}</small></td>
                     <td data-label="Período">
                         {{ $lease->start_date?->format('d/m/Y') ?? 'A definir' }}

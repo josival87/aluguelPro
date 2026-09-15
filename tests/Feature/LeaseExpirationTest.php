@@ -69,6 +69,21 @@ class LeaseExpirationTest extends TestCase
             ->assertDontSee('Vencido há');
     }
 
+    public function test_client_column_shows_the_lease_nickname_below_the_client_name(): void
+    {
+        $lease = $this->lease(['nickname' => 'Aluguel da Família Silva']);
+
+        $response = $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get(route('admin.leases.index'))
+            ->assertOk()
+            ->assertSee($lease->client->name)
+            ->assertSee('Aluguel da Família Silva');
+
+        $clientCell = substr($response->getContent(), strpos($response->getContent(), 'data-label="Cliente"'), 300);
+        $this->assertStringContainsString($lease->client->name, $clientCell);
+        $this->assertStringContainsString('<small style="display:block;color:var(--muted)">Aluguel da Família Silva</small>', $clientCell);
+    }
+
     public function test_filters_refresh_newly_expired_leases_and_preserve_search_and_pagination(): void
     {
         $expired = $this->lease(['end_date' => '2026-08-15']);
