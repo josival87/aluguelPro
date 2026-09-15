@@ -78,6 +78,23 @@ class MonthlyChargeGenerationTest extends TestCase
         ]);
     }
 
+    public function test_due_days_after_the_end_of_a_month_use_its_last_day(): void
+    {
+        $dayThirty = $this->lease(['due_day' => 30]);
+        $dayThirtyOne = $this->lease(['due_day' => 31]);
+
+        $this->assertSame(2, app(BillingService::class)->generateMonth(Carbon::parse('2026-02-01')));
+
+        $this->assertDatabaseHas('charges', [
+            'lease_id' => $dayThirty->id,
+            'due_date' => '2026-02-28 00:00:00',
+        ]);
+        $this->assertDatabaseHas('charges', [
+            'lease_id' => $dayThirtyOne->id,
+            'due_date' => '2026-02-28 00:00:00',
+        ]);
+    }
+
     public function test_manual_button_generates_only_missing_charges_for_the_selected_month(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

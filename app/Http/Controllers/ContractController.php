@@ -230,7 +230,7 @@ class ContractController extends Controller
             $hasAdminSignature = $lockedContract->signatures()->where('signer_type', 'responsible')->exists();
             if ($hasTenantSignature && $hasAdminSignature) {
                 $lockedContract->update(['status' => 'signed', 'signed_at' => now()]);
-                $lockedContract->lease()->update(['status' => 'active']);
+                $lockedContract->lease->update(['status' => 'active']);
                 $lockedContract->lease()->firstOrFail()->property()->update(['status' => 'rented']);
             }
         });

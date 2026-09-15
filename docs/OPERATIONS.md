@@ -13,10 +13,13 @@
 
 ## Rotinas automáticas
 
+- Todos os dias às 00:05: `leases:mark-expired` altera aluguéis ativos com data final anterior ao dia atual para **Ativo - vencido**, no fuso `BILLING_TIMEZONE` (padrão `America/Sao_Paulo`). A listagem de aluguéis também atualiza os vencidos ao ser aberta.
 - No último dia de cada mês às 23:55: `billing:generate --next` cria somente as cobranças de aluguel ausentes do mês seguinte.
 - Todos os dias às 09:00: `billing:remind` registra/envia lembretes e avisos de atraso.
 - A cada cinco minutos: `mia:dispatch-pending` recupera registros da Mia que ficaram pendentes sem um job ativo.
 - As rotinas usam `withoutOverlapping` para reduzir duplicidade concorrente.
+
+Aluguéis **Ativo - vencido** continuam nas cobranças e na contagem de aluguéis vigentes. Ao salvar uma renovação com data final a partir de hoje, voltam a **Ativo**. A migration `2026_09_15_000100_mark_expired_active_leases` atualiza os registros existentes sem alterar aluguéis encerrados, cancelados ou aguardando finalização/assinaturas. A coluna Período mostra meses completos, “menos de 1 mês” para períodos menores e “Vence hoje” na data final.
 
 ## Integração com a Mia
 

@@ -21,6 +21,8 @@ class LeaseController extends Controller
 {
     public function index(Request $request)
     {
+        Lease::markExpiredActiveLeases();
+
         $leases = Lease::with('client', 'property.group')
             ->when($request->status, fn ($q, $v) => $q->where('status', $v))
             ->when($request->q, function ($query, $term) {
@@ -134,9 +136,9 @@ class LeaseController extends Controller
     private function validated(Request $request, ?Lease $lease = null): array
     {
         $data = $request->validate([
-            'property_id' => ['required', 'exists:properties,id'], 'client_id' => ['required', 'exists:clients,id'], 'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after:start_date'], 'contract_months' => ['required', 'integer', 'min:1', 'max:120'], 'due_day' => ['required', 'integer', 'min:1', 'max:28'],
-            'rent_amount' => ['required', 'numeric', 'min:0'], 'status' => ['required', Rule::in(['awaiting_completion', 'awaiting_signatures', 'active', 'closed', 'cancelled'])],
+            'property_id' => ['required', 'exists:properties,id'], 'client_id' => ['required', 'exists:clients,id'], 'nickname' => ['nullable', 'string', 'max:100'], 'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after:start_date'], 'contract_months' => ['required', 'integer', 'min:1', 'max:120'], 'due_day' => ['required', 'integer', 'min:1', 'max:31'],
+            'rent_amount' => ['required', 'numeric', 'min:0'], 'status' => ['required', Rule::in(['awaiting_completion', 'awaiting_signatures', 'active', 'active_expired', 'closed', 'cancelled'])],
             'has_solar_energy' => ['boolean'], 'utility_number' => ['nullable', 'string', 'max:100'], 'notes' => ['nullable', 'string'],
             'initial_reading' => ['nullable', 'required_if:has_solar_energy,1', 'numeric', 'min:0'], 'price_per_kwh' => ['nullable', 'required_if:has_solar_energy,1', 'numeric', 'min:0'],
         ]);

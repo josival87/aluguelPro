@@ -33,6 +33,11 @@
                 @endforeach
             </select>
         </div>
+        <div class="field span-2">
+            <label for="lease-nickname">Apelido do aluguel</label>
+            <input id="lease-nickname" name="nickname" maxlength="100" value="{{ old('nickname', $lease->nickname) }}" placeholder="Ex.: Aluguel João — Apto 102">
+            <small>Usado para identificar a cobrança de aluguel no calendário.</small>
+        </div>
         <div class="field">
             <label>Data de início</label>
             <input type="date" name="start_date" value="{{ old('start_date', $lease->start_date?->format('Y-m-d') ?? ($contractDates['start_date'] ?? null)) }}">
@@ -49,7 +54,8 @@
         </div>
         <div class="field">
             <label>Dia de vencimento</label>
-            <input type="number" min="1" max="28" name="due_day" value="{{ old('due_day', $lease->due_day ?: 10) }}" required>
+            <input type="number" min="1" max="31" name="due_day" value="{{ old('due_day', $lease->due_day ?: 10) }}" required>
+            <small>Para os dias 29, 30 ou 31, em meses menores o vencimento será no último dia do mês.</small>
         </div>
         <div class="field">
             <label>Valor do aluguel</label>
@@ -61,6 +67,7 @@
                 $statusOptions = [
                     'awaiting_completion' => 'Aguardando finalização',
                     'active' => 'Ativo',
+                    'active_expired' => 'Ativo - vencido',
                     'closed' => 'Encerrado',
                     'cancelled' => 'Cancelado',
                 ] + ($lease->status === 'awaiting_signatures'
@@ -72,6 +79,7 @@
                     <option value="{{ $value }}" @selected(old('status', $lease->status ?: 'awaiting_completion') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
+            <small>Aluguéis ativos ficam como Ativo - vencido após a data final e voltam a Ativo ao renovar o prazo.</small>
             <small>Ativo representa um contrato em vigência e mantém as cobranças. Encerrado libera o imóvel e interrompe novas cobranças.</small>
         </div>
         <div class="field span-2">

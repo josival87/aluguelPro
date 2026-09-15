@@ -148,8 +148,9 @@ class LeaseEditTest extends TestCase
         $data = [
             'property_id' => $property->id,
             'client_id' => $client->id,
+            'nickname' => 'Aluguel do cliente vigência',
             'contract_months' => 12,
-            'due_day' => 10,
+            'due_day' => 30,
             'rent_amount' => 1500,
         ];
 
@@ -159,6 +160,8 @@ class LeaseEditTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertSame('active', $lease->fresh()->status);
+        $this->assertSame(30, $lease->fresh()->due_day);
+        $this->assertSame('Aluguel do cliente vigência', $lease->fresh()->nickname);
         $this->assertTrue($lease->fresh()->isInForce());
         $this->assertSame('rented', $property->fresh()->status);
 

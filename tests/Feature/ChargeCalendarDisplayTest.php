@@ -16,7 +16,7 @@ class ChargeCalendarDisplayTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_calendar_chip_shows_only_property_title_and_amount_without_cents(): void
+    public function test_calendar_chip_shows_the_lease_nickname_or_solar_energy_and_amount_without_cents(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'active' => true]);
         $group = PropertyGroup::create([
@@ -54,6 +54,7 @@ class ChargeCalendarDisplayTest extends TestCase
         $lease = Lease::create([
             'property_id' => $property->id,
             'client_id' => $client->id,
+            'nickname' => 'Aluguel da Família Silva',
             'contract_months' => 12,
             'due_day' => 10,
             'rent_amount' => 900,
@@ -84,13 +85,15 @@ class ChargeCalendarDisplayTest extends TestCase
             ->assertSee('Total do mês(2)')
             ->assertSee('Recebidos(1)')
             ->assertSee('Em aberto(1)')
-            ->assertSee('Ebm 01 - R$900')
+            ->assertSee('Aluguel da Família Silva - R$900')
+            ->assertSee('Energia Solar - R$100')
             ->assertSee('Dar baixa')
             ->assertSee('Ver ficha')
             ->assertSee(route('admin.charges.paid', $charge), false)
             ->assertSee(route('admin.leases.show', $lease), false)
             ->assertDontSee('⌂ Aluguel')
-            ->assertDontSee('Ebm 01 - R$900,00');
+            ->assertDontSee('Ebm 01 - R$900')
+            ->assertDontSee('Aluguel da Família Silva - R$900,00');
 
         $this->actingAs($admin)
             ->patch(route('admin.charges.paid', $charge))

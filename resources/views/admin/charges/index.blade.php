@@ -10,7 +10,7 @@
 <div class="calendar-wrap"><div class="calendar-head">@foreach(['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'] as $day)<div>{{ $day }}</div>@endforeach</div><div class="calendar-grid">@for($i=0;$i<42;$i++)@php($date=$cursor->copy()->addDays($i))<div class="calendar-day {{ $date->month!==$month->month?'muted':'' }}"><span class="day-number">{{ $date->day }}</span>
 @foreach($charges->get($date->day,collect())->filter(fn($c)=>$c->due_date->isSameDay($date)) as $charge)
 <details class="charge-actions">
-    <summary class="charge-chip {{ $charge->status==='paid'?'paid':($charge->due_date->isPast()?'overdue':'') }}"><strong>{{ $charge->lease->property->title }} - R${{ number_format((float)$charge->amount,0,',','.') }}</strong></summary>
+    <summary class="charge-chip {{ $charge->status==='paid'?'paid':($charge->due_date->isPast()?'overdue':'') }}"><strong>{{ $charge->type === 'solar' ? 'Energia Solar' : ($charge->lease->nickname ?: $charge->lease->property->title) }} - R${{ number_format((float)$charge->amount,0,',','.') }}</strong></summary>
     <div class="charge-action-menu">
         @if($charge->status !== 'paid')<form method="post" action="{{ route('admin.charges.paid',$charge) }}">@csrf @method('PATCH')<button class="charge-action" type="submit">Dar baixa</button></form>@else<span class="charge-action charge-action-paid">Pago</span>@endif
         @if($charge->status === 'open' && $charge->due_date->toDateString() < now(config('business.billing_timezone', 'America/Sao_Paulo'))->toDateString())

@@ -10,6 +10,15 @@ Artisan::command('inspire', function () {
 
 $billingTimezone = config('business.billing_timezone', 'America/Sao_Paulo');
 
+Artisan::command('leases:mark-expired', function () {
+    $this->info(\App\Models\Lease::markExpiredActiveLeases().' aluguel(is) atualizado(s).');
+})->purpose('Marca aluguéis ativos cujo contrato venceu');
+
+Schedule::command('leases:mark-expired')
+    ->dailyAt('00:05')
+    ->timezone($billingTimezone)
+    ->withoutOverlapping();
+
 Schedule::command('billing:generate --next')
     ->dailyAt('23:55')
     ->timezone($billingTimezone)

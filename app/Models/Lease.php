@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAdminGroupScope;
 use App\Models\Scopes\AdminGroupScope;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Lease extends Model
@@ -14,14 +15,57 @@ class Lease extends Model
 
     protected const ADMIN_GROUP_SCOPE_KEY = 'property';
 
-    public const IN_FORCE_STATUSES = ['active'];
+    public const IN_FORCE_STATUSES = ['active', 'active_expired'];
 
     public const CLOSED_STATUSES = ['closed', 'cancelled'];
 
     protected $fillable = [
-        'property_id', 'client_id', 'start_date', 'end_date', 'contract_months', 'due_day',
+        'property_id', 'client_id', 'nickname', 'start_date', 'end_date', 'contract_months', 'due_day',
         'rent_amount', 'status', 'has_solar_energy', 'utility_number', 'notes',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Lease $lease): void {
+            if ($lease->isInForce()) {
+                $lease->status = $lease->end_date && $lease->end_date->toDateString() < static::contractToday()->toDateString()
+                    ? 'active_expired'
+                    : 'active';
+            }
+        });
+    }
+
+    public static function contractToday(): Carbon
+    {
+        return Carbon::today(config('business.billing_timezone', 'America/Sao_Paulo'));
+    }
+
+    public static function markExpiredActiveLeases(): int
+    {
+        return static::query()
+            ->where('status', 'active')
+            ->whereDate('end_date', '<', static::contractToday()->toDateString())
+            ->update(['status' => 'active_expired']);
+    }
+
+    /** @return array{label: string, expired: bool}|null */
+    public function contractExpiration(): ?array
+    {
+        if (! $this->end_date) {
+            return null;
+        }
+
+        $today = static::contractToday();
+        $endDate = Carbon::parse($this->end_date->toDateString(), $today->timezone);
+        $expired = $endDate->lt($today);
+        $months = (int) ($expired ? $endDate->diffInMonths($today) : $today->diffInMonths($endDate));
+        $duration = $months === 0 ? 'menos de 1 mês' : $months.' '.($months === 1 ? 'mês' : 'meses');
+
+        return [
+            'label' => $endDate->eq($today) ? 'Vence hoje' : ($expired ? 'Vencido há ' : 'Vence em ').$duration,
+            'expired' => $expired,
+        ];
+    }
 
     protected function casts(): array
     {

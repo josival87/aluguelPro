@@ -21,6 +21,7 @@
                 'awaiting_completion' => 'Aguardando finalização',
                 'awaiting_signatures' => 'Aguardando assinaturas',
                 'active' => 'Ativo',
+                'active_expired' => 'Ativo - vencido',
                 'closed' => 'Encerrado',
                 'cancelled' => 'Cancelado',
             ] as $value => $label)
@@ -40,7 +41,13 @@
                     <td data-label="ID"><strong>#{{ $lease->id }}</strong></td>
                     <td data-label="Cliente">{{ $lease->client->name }}</td>
                     <td data-label="Imóvel"><strong>{{ $lease->property->title }}</strong><small style="display:block;color:var(--muted)">{{ $lease->property->group->name }}</small></td>
-                    <td data-label="Período">{{ $lease->start_date?->format('d/m/Y') ?? 'A definir' }}<small style="display:block;color:var(--muted)">até {{ $lease->end_date?->format('d/m/Y') ?? 'a definir' }}</small></td>
+                    <td data-label="Período">
+                        {{ $lease->start_date?->format('d/m/Y') ?? 'A definir' }}
+                        <small style="display:block;color:var(--muted)">até {{ $lease->end_date?->format('d/m/Y') ?? 'a definir' }}</small>
+                        @if($expiration = $lease->contractExpiration())
+                            <small style="display:block;color:var(--{{ $expiration['expired'] ? 'red' : 'blue' }})">{{ $expiration['label'] }}</small>
+                        @endif
+                    </td>
                     <td data-label="Valor">R$ {{ number_format((float) $lease->rent_amount, 2, ',', '.') }}</td>
                     <td data-label="Status"><x-status :value="$lease->status"/></td>
                     <td><a class="icon-btn" href="{{ route('admin.leases.show', $lease) }}"><x-icon name="chevron" size="17"/></a></td>
