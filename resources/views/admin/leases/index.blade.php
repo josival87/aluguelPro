@@ -9,6 +9,10 @@
 </div>
 
 <form class="filter-bar">
+    <div class="field" style="min-width:280px">
+        <label for="lease-search">Buscar imóvel ou inquilino</label>
+        <input id="lease-search" name="q" value="{{ request('q') }}" placeholder="Nome do inquilino ou título do imóvel">
+    </div>
     <div class="field">
         <label>Status</label>
         <select name="status" onchange="this.form.submit()">
@@ -24,6 +28,7 @@
             @endforeach
         </select>
     </div>
+    <button class="btn btn-outline" type="submit"><x-icon name="search"/> Buscar</button>
 </form>
 
 <div class="table-wrap">

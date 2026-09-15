@@ -78,6 +78,8 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::post('/cobrancas/gerar', [ChargeController::class, 'generate'])->name('charges.generate');
     Route::post('/alugueis/{lease}/cobrancas-avulsas', [ChargeController::class, 'storeOneOff'])->name('leases.charges.store');
     Route::post('/cobrancas/{charge}/pix', [ChargeController::class, 'pix'])->name('charges.pix');
+    Route::get('/cobrancas/{charge}/extrato-solar', [ChargeController::class, 'solarReceipt'])->name('charges.solar-receipt');
+    Route::post('/cobrancas/{charge}/extrato-solar/whatsapp', [ChargeController::class, 'sendSolarReceipt'])->middleware('throttle:10,1')->name('charges.solar-receipt.whatsapp');
     Route::post('/cobrancas/{charge}/cobrar-atraso', [ChargeController::class, 'sendOverdueNotice'])->middleware('throttle:10,1')->name('charges.overdue-notice');
     Route::patch('/cobrancas/{charge}/valor', [ChargeController::class, 'updateAmount'])->name('charges.amount.update');
     Route::patch('/cobrancas/{charge}/zerar-e-baixar', [ChargeController::class, 'waive'])->name('charges.waive');

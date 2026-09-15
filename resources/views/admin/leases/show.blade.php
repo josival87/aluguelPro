@@ -151,6 +151,9 @@
                         @else
                             <form method="post" action="{{ route('admin.charges.reopen',$charge) }}">@csrf @method('PATCH')<button class="btn btn-ghost btn-sm" type="submit">Reabrir</button></form>
                         @endif
+                        @if($charge->type === 'solar' && $charge->solarReading)
+                            <a class="btn btn-outline btn-sm" href="{{ route('admin.charges.solar-receipt', $charge) }}"><x-icon name="file"/> Extrato</a>
+                        @endif
                     </div>
                 </td>
             </tr>
@@ -161,6 +164,7 @@
     'due_in_5_days' => 'Lembrete: vence em 5 dias',
     'due_today' => 'Lembrete: vence hoje',
     'overdue' => 'Cobrança de atraso',
+    'solar_receipt' => 'Extrato de energia solar',
     'signature_otp' => 'Código de assinatura',
 ])
 <section class="card" style="margin-top:20px">
@@ -188,5 +192,5 @@
         @empty<tr><td colspan="6" class="empty">Nenhuma mensagem WhatsApp foi registrada para este cliente neste aluguel.</td></tr>@endforelse</tbody>
     </table></div>
 </section>
-@if($lease->has_solar_energy)<section class="card" style="margin-top:20px"><div class="page-head"><div><h2>Histórico solar</h2><p>Leituras e consumo mensal.</p></div><a class="btn btn-outline btn-sm" href="{{ route('admin.solar.create',['lease'=>$lease->id]) }}"><x-icon name="camera"/> Nova medição</a></div>@forelse($lease->solarConfig?->readings ?? [] as $reading)<div class="list-row"><span class="metric-icon"><x-icon name="sun"/></span><span class="list-row-main"><strong>{{ $reading->reference_month->translatedFormat('F/Y') }}</strong><small>{{ $reading->previous_reading }} → {{ $reading->meter_reading }} kWh · OCR {{ $reading->ocr_status }}</small></span><span class="amount">{{ $reading->consumption_kwh }} kWh<br>R$ {{ number_format((float)$reading->amount,2,',','.') }}</span></div>@empty<div class="empty">Nenhuma medição registrada.</div>@endforelse</section>@endif
+@if($lease->has_solar_energy)<section class="card" style="margin-top:20px"><div class="page-head"><div><h2>Histórico solar</h2><p>Leituras e consumo mensal.</p></div><a class="btn btn-outline btn-sm" href="{{ route('admin.solar.create',['lease'=>$lease->id]) }}"><x-icon name="camera"/> Nova medição</a></div>@forelse($lease->solarConfig?->readings ?? [] as $reading)<div class="list-row"><span class="metric-icon"><x-icon name="sun"/></span><span class="list-row-main"><strong>{{ $reading->reference_month->translatedFormat('F/Y') }}</strong><small>{{ $reading->previous_reading }} → {{ $reading->meter_reading }} kWh · OCR {{ $reading->ocr_status }}</small></span><span class="amount">{{ $reading->consumption_kwh }} kWh<br>R$ {{ number_format((float)$reading->amount,2,',','.') }}</span>@if($reading->charge)<a class="btn btn-outline btn-sm" href="{{ route('admin.charges.solar-receipt', $reading->charge) }}">Extrato</a>@endif</div>@empty<div class="empty">Nenhuma medição registrada.</div>@endforelse</section>@endif
 @endsection

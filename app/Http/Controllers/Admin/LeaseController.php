@@ -21,7 +21,18 @@ class LeaseController extends Controller
 {
     public function index(Request $request)
     {
-        $leases = Lease::with('client', 'property.group')->when($request->status, fn ($q, $v) => $q->where('status', $v))->orderByDesc('id')->paginate(15)->withQueryString();
+        $leases = Lease::with('client', 'property.group')
+            ->when($request->status, fn ($q, $v) => $q->where('status', $v))
+            ->when($request->q, function ($query, $term) {
+                $query->where(function ($subquery) use ($term) {
+                    $subquery
+                        ->whereHas('property', fn ($property) => $property->whereLike('title', "%{$term}%", caseSensitive: false))
+                        ->orWhereHas('client', fn ($client) => $client->whereLike('name', "%{$term}%", caseSensitive: false));
+                });
+            })
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.leases.index', compact('leases'));
     }
@@ -54,6 +65,7 @@ class LeaseController extends Controller
             'client.documents',
             'property.group',
             'charges.adjustments.user',
+            'charges.solarReading',
             'solarConfig.readings.charge',
             'contract.template',
             'contract.signatures',

@@ -128,6 +128,28 @@ class AdminGroupAccessTest extends TestCase
         ]);
     }
 
+    public function test_leases_can_be_searched_by_property_or_client_name(): void
+    {
+        $this->twoGroupFixtures();
+        $admin = User::factory()->create(['role' => 'admin', 'group_id' => null]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.leases.index', ['q' => 'ALFA']))
+            ->assertOk()
+            ->assertSee('Cliente Alfa')
+            ->assertSee('Imóvel Alfa')
+            ->assertDontSee('Cliente Beta')
+            ->assertDontSee('Imóvel Beta');
+
+        $this->actingAs($admin)
+            ->get(route('admin.leases.index', ['q' => 'beta', 'status' => 'active']))
+            ->assertOk()
+            ->assertSee('Cliente Beta')
+            ->assertSee('Imóvel Beta')
+            ->assertDontSee('Cliente Alfa')
+            ->assertDontSee('Imóvel Alfa');
+    }
+
     public function test_restricted_admin_cannot_open_or_submit_records_from_another_group(): void
     {
         $fixtures = $this->twoGroupFixtures();

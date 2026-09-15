@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Charge;
 use App\Models\Lease;
 use App\Models\PropertyGroup;
+use App\Models\SolarReading;
 use App\Models\WhatsAppAutomation;
 use App\Services\BillingService;
 use App\Services\ChargePaymentService;
@@ -23,7 +24,7 @@ class ChargeController extends Controller
     {
         $month = $request->filled('month') ? Carbon::createFromFormat('Y-m', $request->month)->startOfMonth() : now()->startOfMonth();
         $groupId = AdminGroupContext::groupId($request->user()) ?? ($request->integer('group') ?: null);
-        $query = Charge::with('lease.property.group', 'client')->whereDate('reference_month', $month)->when($groupId, fn ($q) => $q->whereHas('lease.property', fn ($p) => $p->where('group_id', $groupId)));
+        $query = Charge::with('lease.property.group', 'client', 'solarReading')->whereDate('reference_month', $month)->when($groupId, fn ($q) => $q->whereHas('lease.property', fn ($p) => $p->where('group_id', $groupId)));
         $charges = (clone $query)->orderBy('due_date')->get()->groupBy(fn ($charge) => $charge->due_date->day);
         $summary = [
             'total' => (clone $query)->sum('amount'),
@@ -36,6 +37,49 @@ class ChargeController extends Controller
         $groups = PropertyGroup::orderBy('name')->get();
 
         return view('admin.charges.index', compact('charges', 'summary', 'groups', 'month', 'groupId'));
+    }
+
+    public function solarReceipt(Charge $charge)
+    {
+        return view('admin.charges.solar-receipt', $this->solarReceiptData($charge));
+    }
+
+    public function sendSolarReceipt(Charge $charge, WhatsAppService $whatsApp): RedirectResponse
+    {
+        $data = $this->solarReceiptData($charge);
+        $reading = $data['reading'];
+        $contents = base64_decode((string) $reading->photo_base64, true);
+
+        if ($contents === false || $contents === '') {
+            return back()->withErrors(['whatsapp' => 'Esta medição não possui a foto do medidor para enviar.']);
+        }
+
+        if (! in_array($reading->photo_mime_type, ['image/jpeg', 'image/png'], true)) {
+            return back()->withErrors(['whatsapp' => 'A foto desta medição precisa estar em JPEG ou PNG para ser enviada pelo WhatsApp.']);
+        }
+
+        $reference = $reading->reference_month->format('Y-m');
+        $extension = $reading->photo_mime_type === 'image/png' ? 'png' : 'jpg';
+        $log = $whatsApp->sendImage(
+            $charge->client->phone,
+            $contents,
+            "extrato-energia-solar-{$reference}.{$extension}",
+            $data['message'],
+            'solar_receipt',
+            'client',
+            $charge,
+            $reading->photo_mime_type,
+        );
+
+        if ($log->status === 'sent') {
+            return back()->with('success', 'Extrato de energia solar enviado por WhatsApp.');
+        }
+
+        $message = $log->status === 'simulated'
+            ? 'A tentativa foi registrada, mas o WhatsApp ainda não está configurado e conectado.'
+            : ($log->error ?: 'O WhatsApp não confirmou o envio do extrato.');
+
+        return back()->withErrors(['whatsapp' => $message]);
     }
 
     public function generate(Request $request, BillingService $billing)
@@ -160,5 +204,49 @@ class ChargeController extends Controller
             ->to(route('admin.leases.show', $charge->lease_id).'#pix-gerado')
             ->with('pix_payment_id', $payment->id)
             ->with('success', 'Pix estático gerado. Copie o código para compartilhar com o cliente.');
+    }
+
+    /** @return array{charge: Charge, reading: SolarReading, previousReading: ?SolarReading, message: string} */
+    private function solarReceiptData(Charge $charge): array
+    {
+        abort_unless($charge->type === 'solar', 404);
+
+        $charge->load(['client', 'lease.property.group', 'solarReading.solarConfig']);
+        abort_unless($charge->solarReading, 404, 'Esta cobrança ainda não possui uma leitura solar vinculada.');
+
+        $reading = $charge->solarReading;
+        $previousReading = SolarReading::query()
+            ->where('solar_config_id', $reading->solar_config_id)
+            ->where('reference_month', '<', $reading->reference_month)
+            ->latest('reference_month')
+            ->first();
+
+        return [
+            'charge' => $charge,
+            'reading' => $reading,
+            'previousReading' => $previousReading,
+            'message' => $this->solarReceiptMessage($charge, $reading, $previousReading),
+        ];
+    }
+
+    private function solarReceiptMessage(Charge $charge, SolarReading $reading, ?SolarReading $previousReading): string
+    {
+        $previousDate = $previousReading?->created_at?->timezone(config('business.billing_timezone', 'America/Sao_Paulo'))->format('d/m/Y') ?? 'leitura inicial';
+        $currentDate = $reading->created_at?->timezone(config('business.billing_timezone', 'America/Sao_Paulo'))->format('d/m/Y') ?? 'não informada';
+        $price = (float) $reading->amount / max((float) $reading->consumption_kwh, 1);
+        $price = $reading->solarConfig?->price_per_kwh !== null ? (float) $reading->solarConfig->price_per_kwh : $price;
+
+        return implode("\n", [
+            '☀️ *Extrato de energia solar*',
+            "Cliente: {$charge->client->name}",
+            "Imóvel: {$charge->lease->property->title}",
+            "Referência: {$reading->reference_month->translatedFormat('F/Y')}",
+            "Leitura anterior: ".number_format((float) $reading->previous_reading, 3, ',', '.')." kWh ({$previousDate})",
+            "Leitura atual: ".number_format((float) $reading->meter_reading, 3, ',', '.')." kWh ({$currentDate})",
+            "Consumo: ".number_format((float) $reading->consumption_kwh, 3, ',', '.').' kWh',
+            'Valor do kWh: R$ '.number_format($price, 4, ',', '.'),
+            'Total: R$ '.number_format((float) $reading->amount, 2, ',', '.'),
+            'Vencimento: '.$charge->due_date->format('d/m/Y'),
+        ]);
     }
 }
