@@ -77,5 +77,10 @@ class ContractWorkflowTest extends TestCase
         $snapshot = $leaseContract->final_content;
         $template->update(['content' => '<p>Novo modelo {{nome_cliente}}</p>']);
         $this->assertSame($snapshot, $leaseContract->fresh()->final_content);
+
+        $contentWithSmallerText = '<p><span style="font-size: 13px">Cláusula em tamanho menor</span></p>';
+        app(ContractService::class)->saveDraft($leaseContract, $contentWithSmallerText);
+
+        $this->assertSame($contentWithSmallerText, $leaseContract->fresh()->final_content);
     }
 }

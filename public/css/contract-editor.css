@@ -16,3 +16,15 @@
     display: block;
     margin: auto;
 }
+
+.editor-toolbar [data-font-adjust] {
+    font-family: Georgia, serif;
+}
+
+.editor-toolbar [data-font-adjust="-1"] {
+    font-size: 12px;
+}
+
+.editor-toolbar [data-font-adjust="1"] {
+    font-size: 17px;
+}

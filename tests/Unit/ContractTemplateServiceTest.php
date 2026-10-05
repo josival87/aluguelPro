@@ -49,4 +49,16 @@ class ContractTemplateServiceTest extends TestCase
             $content,
         );
     }
+
+    public function test_it_preserves_supported_font_sizes_and_removes_arbitrary_ones(): void
+    {
+        $content = app(ContractService::class)->sanitize(
+            '<p><font size="2">Texto menor legado</font><span style="font-size: 13px">Texto menor</span><span style="font-size: 99px">Texto inseguro</span></p>'
+        );
+
+        $this->assertStringContainsString('<span style="font-size: 13px">Texto menor legado</span>', $content);
+        $this->assertStringContainsString('<span style="font-size: 13px">Texto menor</span>', $content);
+        $this->assertStringContainsString('<span>Texto inseguro</span>', $content);
+        $this->assertStringNotContainsString('99px', $content);
+    }
 }

@@ -66,6 +66,15 @@ class ContractService
 
     public function sanitize(string $html): string
     {
+        $fontSizes = [1 => 10, 2 => 13, 3 => 16, 4 => 18, 5 => 24, 6 => 32, 7 => 48];
+        $html = preg_replace_callback('/<font\b([^>]*)>/iu', function (array $match) use ($fontSizes): string {
+            preg_match('/\bsize\s*=\s*(?:"([1-7])"|\'([1-7])\'|([1-7]))/iu', $match[1], $sizeMatch);
+            $size = (int) ($sizeMatch[1] ?? $sizeMatch[2] ?? $sizeMatch[3] ?? 0);
+
+            return $size === 0 ? '<span>' : '<span style="font-size: '.$fontSizes[$size].'px">';
+        }, $html) ?? $html;
+        $html = str_ireplace('</font>', '</span>', $html);
+
         $allowed = '<article><section><div><p><br><strong><b><em><i><u><h1><h2><h3><h4><ol><ul><li><table><thead><tbody><tfoot><tr><th><td><blockquote><hr><span>';
         $clean = strip_tags($html, $allowed);
         $clean = preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/iu', '', $clean) ?? $clean;
@@ -97,6 +106,11 @@ class ContractService
                     if ($property === 'margin-left'
                         && preg_match('/^(?:0|[1-9]\d{0,2})px$/', $value)
                         && (int) $value <= 320) {
+                        $safe[$property] = $value;
+                    }
+
+                    if ($property === 'font-size'
+                        && in_array($value, ['10px', '13px', '16px', '18px', '24px', '32px', '48px'], true)) {
                         $safe[$property] = $value;
                     }
                 }

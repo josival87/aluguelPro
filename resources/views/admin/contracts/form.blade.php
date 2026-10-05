@@ -28,6 +28,19 @@ document.addEventListener('DOMContentLoaded',()=>{
     const editor=document.querySelector('#rich-editor'),content=document.querySelector('#contract-content'),form=document.querySelector('#contract-form');
     document.querySelectorAll('[data-command]').forEach(button=>button.addEventListener('click',()=>{editor.focus();document.execCommand(button.dataset.command,false,null)}));
     document.querySelectorAll('[data-block]').forEach(button=>button.addEventListener('click',()=>{editor.focus();document.execCommand('formatBlock',false,button.dataset.block)}));
+    document.querySelectorAll('[data-font-adjust]').forEach(button=>button.addEventListener('click',()=>{
+        editor.focus();
+        const current=parseInt(document.queryCommandValue('fontSize'),10)||3;
+        const next=Math.max(1,Math.min(7,current+parseInt(button.dataset.fontAdjust,10)));
+        document.execCommand('fontSize',false,String(next));
+        const fontSizes={1:10,2:13,3:16,4:18,5:24,6:32,7:48};
+        editor.querySelectorAll('font[size]').forEach(font=>{
+            const span=document.createElement('span');
+            span.style.fontSize=`${fontSizes[font.getAttribute('size')]||16}px`;
+            while(font.firstChild) span.appendChild(font.firstChild);
+            font.replaceWith(span);
+        });
+    }));
     document.querySelectorAll('[data-variable]').forEach(button=>button.addEventListener('click',()=>{editor.focus();document.execCommand('insertText',false,'{'.concat('{',button.dataset.variable,'}','}'))}));
     form.addEventListener('submit',()=>content.value=editor.innerHTML);
 });

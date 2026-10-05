@@ -7,6 +7,11 @@
         <button type="button" data-command="insertUnorderedList" aria-label="Lista" title="Lista">Lista</button>
     </span>
 
+    <span class="toolbar-group" role="group" aria-label="Tamanho da fonte">
+        <button type="button" data-font-adjust="-1" aria-label="Diminuir tamanho da fonte" title="Diminuir tamanho da fonte">A−</button>
+        <button type="button" data-font-adjust="1" aria-label="Aumentar tamanho da fonte" title="Aumentar tamanho da fonte">A+</button>
+    </span>
+
     <span class="toolbar-group" role="group" aria-label="Alinhamento">
         <button type="button" data-command="justifyLeft" aria-label="Alinhar à esquerda" title="Alinhar à esquerda"><x-icon name="align-left" size="17"/></button>
         <button type="button" data-command="justifyCenter" aria-label="Centralizar" title="Centralizar"><x-icon name="align-center" size="17"/></button>
