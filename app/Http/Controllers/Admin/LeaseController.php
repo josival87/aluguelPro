@@ -68,6 +68,10 @@ class LeaseController extends Controller
             'property.group',
             'charges.adjustments.user',
             'charges.solarReading',
+            'charges.pixPayments' => fn ($query) => $query
+                ->select(PixPayment::SUMMARY_COLUMNS)
+                ->with('generatedBy:id,name')
+                ->latest(),
             'solarConfig.readings.charge',
             'contract.template',
             'contract.signatures',
@@ -83,14 +87,9 @@ class LeaseController extends Controller
         } catch (InvalidArgumentException) {
             $pixReady = false;
         }
-        $pixPayment = session('pix_payment_id')
-            ? PixPayment::with('charge')
-                ->whereKey(session('pix_payment_id'))
-                ->whereHas('charge', fn ($query) => $query->where('lease_id', $lease->id))
-                ->first()
-            : null;
+        $openPixPaymentId = session('pix_payment_id');
 
-        return view('admin.leases.show', compact('lease', 'pixPayment', 'pixReady'));
+        return view('admin.leases.show', compact('lease', 'openPixPaymentId', 'pixReady'));
     }
 
     public function edit(Lease $lease, ContractDateExtractor $dateExtractor)

@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const preview = document.querySelector(input.dataset.filePreview);
         if (input.files?.[0] && preview) { preview.src = URL.createObjectURL(input.files[0]); preview.hidden = false; }
     }));
+    document.querySelectorAll('[data-dialog-open]').forEach((button) => button.addEventListener('click', () => {
+        document.getElementById(button.dataset.dialogOpen)?.showModal();
+    }));
+    document.querySelectorAll('dialog[data-dialog-auto-open]').forEach((dialog) => dialog.showModal());
+    document.querySelectorAll('dialog.pix-dialog').forEach((dialog) => dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+    }));
     document.querySelectorAll('[data-cpf-mask]').forEach((input) => {
         const formatCpf = (value) => {
             const digits = value.replace(/\D/g, '').slice(0, 11);

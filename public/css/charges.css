@@ -58,3 +58,164 @@
 .charge-action-paid {
     color: var(--green);
 }
+
+.overdue-carryover {
+    margin-bottom: 24px;
+    overflow: visible;
+    border: 1px solid #cfd4dc;
+    border-radius: 16px;
+    background: #f0f2f5;
+}
+
+.overdue-carryover-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #d8dce3;
+}
+
+.overdue-carryover-head h2 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.overdue-carryover-head p {
+    margin: 2px 0 0;
+    color: #667085;
+    font-size: 13px;
+}
+
+.overdue-alert-icon,
+.overdue-charge-icon {
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #d8dce3;
+    color: #4b5565;
+}
+
+.overdue-alert-icon {
+    width: 42px;
+    height: 42px;
+}
+
+.overdue-total {
+    border-radius: 999px;
+    background: #4b5565;
+    padding: 6px 11px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.overdue-list {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+}
+
+.overdue-charge {
+    border: 1px solid #d7dbe2;
+    border-radius: 11px;
+    background: #e5e7eb;
+}
+
+.overdue-charge[open] {
+    border-color: #aeb4bf;
+}
+
+.overdue-charge-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 13px;
+    color: #374151;
+}
+
+.overdue-charge-icon {
+    width: 34px;
+    height: 34px;
+    background: #cfd3da;
+}
+
+.overdue-charge-main {
+    min-width: 0;
+}
+
+.overdue-charge-main strong,
+.overdue-charge-main small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.overdue-charge-main small {
+    margin-top: 2px;
+    color: #667085;
+    font-size: 12px;
+}
+
+.overdue-charge-amount {
+    white-space: nowrap;
+}
+
+.overdue-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    background: #c9cdd5;
+    padding: 4px 8px;
+    color: #374151;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.overdue-charge[open] .overdue-chevron {
+    transform: rotate(90deg);
+}
+
+.overdue-charge .charge-action-menu {
+    top: calc(100% + 2px);
+    right: 12px;
+    left: auto;
+}
+
+@media (max-width: 820px) {
+    .overdue-carryover-head {
+        grid-template-columns: auto minmax(0, 1fr);
+        padding: 14px;
+    }
+
+    .overdue-total {
+        grid-column: 1 / -1;
+        width: max-content;
+        max-width: 100%;
+    }
+
+    .overdue-charge-summary {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 9px;
+    }
+
+    .overdue-charge-amount {
+        grid-column: 2;
+        font-size: 13px;
+    }
+
+    .overdue-label {
+        grid-column: 2;
+        width: max-content;
+    }
+
+    .overdue-chevron {
+        grid-column: 3;
+        grid-row: 1 / 4;
+    }
+}

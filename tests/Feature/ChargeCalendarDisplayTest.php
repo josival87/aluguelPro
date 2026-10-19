@@ -78,6 +78,33 @@ class ChargeCalendarDisplayTest extends TestCase
             'amount' => 100,
             'status' => 'paid',
         ]);
+        $overdueCharge = Charge::create([
+            'lease_id' => $lease->id,
+            'client_id' => $client->id,
+            'type' => 'rent',
+            'reference_month' => '2026-07-01',
+            'due_date' => '2026-07-10',
+            'amount' => 875,
+            'status' => 'open',
+        ]);
+        Charge::create([
+            'lease_id' => $lease->id,
+            'client_id' => $client->id,
+            'type' => 'rent',
+            'reference_month' => '2026-06-01',
+            'due_date' => '2026-06-10',
+            'amount' => 701,
+            'status' => 'paid',
+        ]);
+        Charge::create([
+            'lease_id' => $lease->id,
+            'client_id' => $client->id,
+            'type' => 'rent',
+            'reference_month' => '2026-09-01',
+            'due_date' => '2026-09-10',
+            'amount' => 902,
+            'status' => 'open',
+        ]);
 
         $this->actingAs($admin)
             ->get(route('admin.charges.index', ['month' => '2026-08']))
@@ -89,11 +116,18 @@ class ChargeCalendarDisplayTest extends TestCase
             ->assertSee('Energia Solar · Ebm 01 - R$100')
             ->assertSee('Dar baixa')
             ->assertSee('Ver ficha')
+            ->assertSee('Cobranças anteriores em atraso')
+            ->assertSee('1 atrasada · R$ 875,00')
+            ->assertSee('venceu em 10/07/2026')
+            ->assertSee('Em atraso')
             ->assertSee(route('admin.charges.paid', $charge), false)
+            ->assertSee(route('admin.charges.paid', $overdueCharge), false)
             ->assertSee(route('admin.leases.show', $lease), false)
             ->assertDontSee('⌂ Aluguel')
             ->assertDontSee('Ebm 01 - R$900')
-            ->assertDontSee('Aluguel da Família Silva - R$900,00');
+            ->assertDontSee('Aluguel da Família Silva - R$900,00')
+            ->assertDontSee('R$ 701,00')
+            ->assertDontSee('R$ 902,00');
 
         $this->actingAs($admin)
             ->patch(route('admin.charges.paid', $charge))

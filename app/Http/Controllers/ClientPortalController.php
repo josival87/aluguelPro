@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Charge;
 use App\Models\Lease;
+use App\Models\PixPayment;
 use App\Models\PropertyMedia;
 use App\Services\MoneyCalculator;
 use App\Services\PixService;
@@ -16,7 +17,12 @@ class ClientPortalController extends Controller
     {
         $client = $request->user()->client;
         abort_unless($client, 403);
-        $client->load(['leases.property.media' => fn ($query) => $query->select(PropertyMedia::DISPLAY_COLUMNS), 'leases.contract.signatures', 'leases.charges' => fn ($q) => $q->orderByDesc('due_date')]);
+        $client->load([
+            'leases.property.media' => fn ($query) => $query->select(PropertyMedia::DISPLAY_COLUMNS),
+            'leases.contract.signatures',
+            'leases.charges' => fn ($query) => $query->orderByDesc('due_date'),
+            'leases.charges.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+        ]);
 
         return view('client.dashboard', compact('client'));
     }
@@ -24,7 +30,12 @@ class ClientPortalController extends Controller
     public function lease(Request $request, Lease $lease)
     {
         abort_unless($lease->client_id === $request->user()->client?->id, 403);
-        $lease->load('property.group.rules', 'contract.signatures', 'charges', 'solarConfig.readings.charge');
+        $lease->load([
+            'property.group.rules',
+            'contract.signatures',
+            'charges.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+            'solarConfig.readings.charge.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+        ]);
 
         return view('client.lease', compact('lease'));
     }
@@ -32,7 +43,10 @@ class ClientPortalController extends Controller
     public function charge(Request $request, Charge $charge, MoneyCalculator $calculator)
     {
         abort_unless($charge->client_id === $request->user()->client?->id, 403);
-        $charge->load('lease.property', 'pixPayments');
+        $charge->load([
+            'lease.property',
+            'pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+        ]);
         $payable = $calculator->payable($charge);
 
         return view('client.charge', compact('charge', 'payable'));
@@ -43,13 +57,13 @@ class ClientPortalController extends Controller
         abort_unless($charge->client_id === $request->user()->client?->id, 403);
         abort_unless($charge->status === 'open', 422, 'Esta cobrança já foi paga.');
         try {
-            $payment = $pix->createFor($charge);
+            $payment = $pix->createFor($charge, $request->user());
         } catch (ValidationException) {
             return back()->withErrors([
                 'pix' => 'Não foi possível gerar o Pix. Entre em contato com a administradora para conferir a chave de recebimento.',
             ]);
         }
 
-        return redirect()->route('client.charge', $charge)->with('payment_id',$payment->id)->with('success','Pix estático gerado. O código ficará disponível aqui por 30 minutos.');
+        return redirect()->route('client.charge', $charge)->with('payment_id', $payment->id)->with('success', 'Pix gerado. Faça o pagamento e envie o comprovante para dar baixa.');
     }
 }

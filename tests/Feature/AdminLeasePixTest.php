@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\PropertyGroup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class AdminLeasePixTest extends TestCase
@@ -23,13 +24,14 @@ class AdminLeasePixTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.leases.show', $lease))
             ->assertOk()
-            ->assertSee('Gerar Pix')
+            ->assertSee('Pix')
+            ->assertSee('Gerar novo Pix')
             ->assertSee(route('admin.charges.pix', $openCharge), false)
             ->assertDontSee(route('admin.charges.pix', $paidCharge), false);
 
         $this->actingAs($admin)
             ->post(route('admin.charges.pix', $openCharge))
-            ->assertRedirect(route('admin.leases.show', $lease).'#pix-gerado')
+            ->assertRedirect(route('admin.leases.show', $lease).'#pix-charge-'.$openCharge->id)
             ->assertSessionHas('pix_payment_id')
             ->assertSessionHas('success');
 
@@ -39,6 +41,9 @@ class AdminLeasePixTest extends TestCase
         $this->assertSame($openCharge->id, $payment->charge_id);
         $this->assertSame('local_emv_static', $payment->provider);
         $this->assertSame('active', $payment->status);
+        $this->assertSame($admin->id, $payment->generated_by_user_id);
+        $this->assertSame('admin', $payment->generated_by_type);
+        $this->assertSame($admin->name, $payment->generated_by_name);
         $this->assertEquals(900.0, $payment->total_amount);
         $this->assertStringStartsWith('00020126', $payload);
         $this->assertStringContainsString('5303986', $payload);
@@ -49,8 +54,8 @@ class AdminLeasePixTest extends TestCase
 
         $this->get(route('admin.leases.show', $lease))
             ->assertOk()
-            ->assertSee('Pix copia e cola')
-            ->assertSee('Pix estático')
+            ->assertSee('Histórico de Pix gerados')
+            ->assertSee('Admin · '.$admin->name)
             ->assertSee($payload);
     }
 
@@ -97,7 +102,7 @@ class AdminLeasePixTest extends TestCase
         $this->actingAs($clientUser)
             ->get(route('client.charge', $openCharge))
             ->assertOk()
-            ->assertSee('Gerar Pix copia e cola')
+            ->assertSee('Gerar Pix')
             ->assertDontSee('CODIGO-ANTIGO-INVALIDO');
 
         $this->post(route('client.pix', $openCharge))
@@ -105,8 +110,71 @@ class AdminLeasePixTest extends TestCase
             ->assertSessionHas('payment_id');
 
         $payment = $openCharge->pixPayments()->where('provider', 'local_emv_static')->sole();
+        $this->assertSame($clientUser->id, $payment->generated_by_user_id);
+        $this->assertSame('client', $payment->generated_by_type);
         $this->assertStringStartsWith('00020126', $payment->br_code);
         $this->assertSame(substr($payment->br_code, -4), $this->crc16(substr($payment->br_code, 0, -4)));
+    }
+
+    public function test_client_can_submit_a_pix_receipt_to_settle_charge_and_both_areas_can_view_it(): void
+    {
+        [$admin, $lease, $openCharge] = $this->leaseWithCharges();
+        $clientUser = User::factory()->create(['name' => 'Cliente do Comprovante', 'role' => 'client', 'active' => true]);
+        $openCharge->client->update(['user_id' => $clientUser->id]);
+
+        $this->actingAs($clientUser)
+            ->post(route('client.pix', $openCharge))
+            ->assertRedirect(route('client.charge', $openCharge));
+
+        $payment = PixPayment::query()->sole();
+        $receipt = UploadedFile::fake()->createWithContent('comprovante.pdf', "%PDF-1.4\ncomprovante pix\n%%EOF");
+
+        $this->post(route('client.pix.receipt.store', $payment), ['receipt' => $receipt])
+            ->assertRedirect(route('client.charge', $openCharge))
+            ->assertSessionHas('success', 'Comprovante enviado e pagamento baixado com sucesso.');
+
+        $this->assertSame('paid', $openCharge->fresh()->status);
+        $this->assertSame('pix_receipt', $openCharge->fresh()->payment_method);
+        $this->assertSame('paid', $payment->fresh()->status);
+        $this->assertSame('comprovante.pdf', $payment->fresh()->receipt_original_name);
+        $this->assertSame($clientUser->id, $payment->fresh()->receipt_uploaded_by_user_id);
+
+        $this->get(route('client.pix.receipt', $payment))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+        $this->get(route('client.dashboard'))
+            ->assertOk()
+            ->assertSee('Comprovante')
+            ->assertSee(route('client.pix.receipt', $payment), false);
+
+        $this->actingAs($admin)
+            ->get(route('admin.leases.show', $lease))
+            ->assertOk()
+            ->assertSee('Cliente · '.$clientUser->name)
+            ->assertSee('Ver documento')
+            ->assertSee(route('admin.pix.receipt', $payment), false);
+        $this->get(route('admin.pix.receipt', $payment))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_client_cannot_upload_or_view_another_clients_pix_receipt(): void
+    {
+        [, , $openCharge] = $this->leaseWithCharges();
+        $owner = User::factory()->create(['role' => 'client', 'active' => true]);
+        $stranger = User::factory()->create(['role' => 'client', 'active' => true]);
+        $openCharge->client->update(['user_id' => $owner->id]);
+        $payment = app(\App\Services\PixService::class)->createFor($openCharge, $owner);
+
+        $this->actingAs($stranger)
+            ->post(route('client.pix.receipt.store', $payment), [
+                'receipt' => UploadedFile::fake()->createWithContent('comprovante.pdf', "%PDF-1.4\n%%EOF"),
+            ])
+            ->assertNotFound();
+        $this->get(route('client.pix.receipt', $payment))->assertNotFound();
+
+        $this->assertNull($payment->fresh()->receipt_original_name);
+        $this->assertSame('open', $openCharge->fresh()->status);
     }
 
     public function test_invalid_group_key_is_rejected_instead_of_generating_an_unpayable_code(): void

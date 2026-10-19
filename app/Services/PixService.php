@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Charge;
 use App\Models\PixPayment;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -12,7 +13,7 @@ class PixService
 {
     public function __construct(private MoneyCalculator $calculator) {}
 
-    public function createFor(Charge $charge): PixPayment
+    public function createFor(Charge $charge, ?User $generatedBy = null): PixPayment
     {
         if ($charge->status !== 'open') {
             throw ValidationException::withMessages([
@@ -34,6 +35,9 @@ class PixService
         );
 
         return $charge->pixPayments()->create([
+            'generated_by_user_id' => $generatedBy?->id,
+            'generated_by_type' => $generatedBy ? ($generatedBy->role === 'client' ? 'client' : 'admin') : null,
+            'generated_by_name' => $generatedBy?->name,
             'txid' => $txid,
             'original_amount' => $values['original'],
             'fine_amount' => $values['fine'],

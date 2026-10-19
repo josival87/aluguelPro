@@ -24,8 +24,15 @@ class ChargeController extends Controller
     {
         $month = $request->filled('month') ? Carbon::createFromFormat('Y-m', $request->month)->startOfMonth() : now()->startOfMonth();
         $groupId = AdminGroupContext::groupId($request->user()) ?? ($request->integer('group') ?: null);
-        $query = Charge::with('lease.property.group', 'client', 'solarReading')->whereDate('reference_month', $month)->when($groupId, fn ($q) => $q->whereHas('lease.property', fn ($p) => $p->where('group_id', $groupId)));
+        $baseQuery = Charge::with('lease.property.group', 'client', 'solarReading')
+            ->when($groupId, fn ($q) => $q->whereHas('lease.property', fn ($p) => $p->where('group_id', $groupId)));
+        $query = (clone $baseQuery)->whereDate('reference_month', $month);
         $charges = (clone $query)->orderBy('due_date')->get()->groupBy(fn ($charge) => $charge->due_date->day);
+        $overdueCharges = (clone $baseQuery)
+            ->where('status', 'open')
+            ->whereDate('reference_month', '<', $month)
+            ->orderBy('due_date')
+            ->get();
         $summary = [
             'total' => (clone $query)->sum('amount'),
             'total_count' => (clone $query)->count(),
@@ -33,10 +40,12 @@ class ChargeController extends Controller
             'received_count' => (clone $query)->where('status', 'paid')->count(),
             'open' => (clone $query)->where('status', 'open')->sum('amount'),
             'open_count' => (clone $query)->where('status', 'open')->count(),
+            'overdue' => $overdueCharges->sum('amount'),
+            'overdue_count' => $overdueCharges->count(),
         ];
         $groups = PropertyGroup::orderBy('name')->get();
 
-        return view('admin.charges.index', compact('charges', 'summary', 'groups', 'month', 'groupId'));
+        return view('admin.charges.index', compact('charges', 'overdueCharges', 'summary', 'groups', 'month', 'groupId'));
     }
 
     public function solarReceipt(Charge $charge)
@@ -196,14 +205,14 @@ class ChargeController extends Controller
         return back()->withErrors(['whatsapp' => $message]);
     }
 
-    public function pix(Charge $charge, PixService $pix)
+    public function pix(Request $request, Charge $charge, PixService $pix)
     {
-        $payment = $pix->createFor($charge);
+        $payment = $pix->createFor($charge, $request->user());
 
         return redirect()
-            ->to(route('admin.leases.show', $charge->lease_id).'#pix-gerado')
+            ->to(route('admin.leases.show', $charge->lease_id).'#pix-charge-'.$charge->id)
             ->with('pix_payment_id', $payment->id)
-            ->with('success', 'Pix estático gerado. Copie o código para compartilhar com o cliente.');
+            ->with('success', 'Novo Pix gerado. Copie o código para compartilhar com o cliente.');
     }
 
     /** @return array{charge: Charge, reading: SolarReading, previousReading: ?SolarReading, message: string} */

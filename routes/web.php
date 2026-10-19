@@ -22,6 +22,7 @@ use App\Http\Controllers\ClientPortalController;
 use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MetaWhatsAppWebhookController;
+use App\Http\Controllers\PixReceiptController;
 use App\Http\Controllers\PropertyMediaController;
 use App\Http\Controllers\PublicPropertyController;
 use Illuminate\Support\Facades\Route;
@@ -84,6 +85,7 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::post('/cobrancas/gerar', [ChargeController::class, 'generate'])->name('charges.generate');
     Route::post('/alugueis/{lease}/cobrancas-avulsas', [ChargeController::class, 'storeOneOff'])->name('leases.charges.store');
     Route::post('/cobrancas/{charge}/pix', [ChargeController::class, 'pix'])->name('charges.pix');
+    Route::get('/pix/{pixPayment}/comprovante', [PixReceiptController::class, 'adminShow'])->name('pix.receipt');
     Route::get('/cobrancas/{charge}/extrato-solar', [ChargeController::class, 'solarReceipt'])->name('charges.solar-receipt');
     Route::post('/cobrancas/{charge}/extrato-solar/whatsapp', [ChargeController::class, 'sendSolarReceipt'])->middleware('throttle:10,1')->name('charges.solar-receipt.whatsapp');
     Route::post('/cobrancas/{charge}/cobrar-atraso', [ChargeController::class, 'sendOverdueNotice'])->middleware('throttle:10,1')->name('charges.overdue-notice');
@@ -110,6 +112,8 @@ Route::middleware(['auth', 'role:client'])->prefix('cliente')->name('client.')->
     Route::get('/alugueis/{lease}', [ClientPortalController::class, 'lease'])->name('lease');
     Route::get('/cobrancas/{charge}', [ClientPortalController::class, 'charge'])->name('charge');
     Route::post('/cobrancas/{charge}/pix', [ClientPortalController::class, 'pix'])->name('pix');
+    Route::post('/pix/{pixPayment}/comprovante', [PixReceiptController::class, 'store'])->name('pix.receipt.store');
+    Route::get('/pix/{pixPayment}/comprovante', [PixReceiptController::class, 'clientShow'])->name('pix.receipt');
 });
 
 Route::middleware('auth')->group(function () {
