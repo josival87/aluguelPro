@@ -213,6 +213,7 @@ class ChargeController extends Controller
             'lease.property.group',
             'pixPayments' => fn ($query) => $query
                 ->select(PixPayment::SUMMARY_COLUMNS)
+                ->audited()
                 ->with('generatedBy:id,name')
                 ->latest(),
         ]);

@@ -21,7 +21,7 @@ class ClientPortalController extends Controller
             'leases.property.media' => fn ($query) => $query->select(PropertyMedia::DISPLAY_COLUMNS),
             'leases.contract.signatures',
             'leases.charges' => fn ($query) => $query->orderByDesc('due_date'),
-            'leases.charges.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+            'leases.charges.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->audited()->latest(),
         ]);
 
         return view('client.dashboard', compact('client'));
@@ -33,8 +33,8 @@ class ClientPortalController extends Controller
         $lease->load([
             'property.group.rules',
             'contract.signatures',
-            'charges.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
-            'solarConfig.readings.charge.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+            'charges.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->audited()->latest(),
+            'solarConfig.readings.charge.pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->audited()->latest(),
         ]);
 
         return view('client.lease', compact('lease'));
@@ -45,7 +45,7 @@ class ClientPortalController extends Controller
         abort_unless($charge->client_id === $request->user()->client?->id, 403);
         $charge->load([
             'lease.property',
-            'pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->latest(),
+            'pixPayments' => fn ($query) => $query->select(PixPayment::SUMMARY_COLUMNS)->audited()->latest(),
         ]);
         $payable = $calculator->payable($charge);
 

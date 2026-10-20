@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class PixPayment extends Model
@@ -35,6 +36,11 @@ class PixPayment extends Model
     public function charge() { return $this->belongsTo(Charge::class); }
     public function generatedBy() { return $this->belongsTo(User::class, 'generated_by_user_id'); }
     public function receiptUploadedBy() { return $this->belongsTo(User::class, 'receipt_uploaded_by_user_id'); }
+
+    public function scopeAudited(Builder $query): Builder
+    {
+        return $query->whereIn('generated_by_type', ['admin', 'client']);
+    }
 
     public function getGeneratorLabelAttribute(): string
     {

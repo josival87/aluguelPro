@@ -98,7 +98,7 @@ class AdminLeasePixTest extends TestCase
             'interest_amount' => 0,
             'total_amount' => 900,
             'br_code' => 'CODIGO-ANTIGO-INVALIDO',
-            'provider' => 'local_emv',
+            'provider' => 'local_emv_static',
             'status' => 'active',
             'expires_at' => now()->addMinutes(30),
         ]);
@@ -109,15 +109,27 @@ class AdminLeasePixTest extends TestCase
             ->assertSee('Gerar Pix')
             ->assertDontSee('CODIGO-ANTIGO-INVALIDO');
 
+        $this->actingAs(User::factory()->create(['role' => 'admin', 'active' => true]))
+            ->get(route('admin.charges.pix.show', $openCharge))
+            ->assertOk()
+            ->assertSee('Nenhum Pix foi gerado para esta cobrança.')
+            ->assertDontSee('CODIGO-ANTIGO-INVALIDO');
+
+        $this->actingAs($clientUser);
+
         $this->post(route('client.pix', $openCharge))
             ->assertRedirect(route('client.charge', $openCharge))
             ->assertSessionHas('payment_id');
 
-        $payment = $openCharge->pixPayments()->where('provider', 'local_emv_static')->sole();
+        $payment = $openCharge->pixPayments()->audited()->where('provider', 'local_emv_static')->sole();
         $this->assertSame($clientUser->id, $payment->generated_by_user_id);
         $this->assertSame('client', $payment->generated_by_type);
         $this->assertStringStartsWith('00020126', $payment->br_code);
         $this->assertSame(substr($payment->br_code, -4), $this->crc16(substr($payment->br_code, 0, -4)));
+
+        $this->get(route('client.charge', $openCharge))
+            ->assertOk()
+            ->assertSee('Cliente · '.$clientUser->name);
     }
 
     public function test_client_can_submit_a_pix_receipt_to_settle_charge_and_both_areas_can_view_it(): void

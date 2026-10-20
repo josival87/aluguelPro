@@ -35,7 +35,7 @@
     <section class="card">
         @if($payment)
             <div class="page-head" style="margin-bottom:14px">
-                <div><h2>Pix gerado</h2><p>{{ $payment->created_at->format('d/m/Y H:i') }}</p></div>
+                <div><h2>Pix gerado</h2><p>{{ $payment->generator_label }} · {{ $payment->created_at->format('d/m/Y H:i') }}</p></div>
                 <span class="badge {{ $payment->status === 'paid' ? 'badge-success' : 'badge-warning' }}">{{ $payment->display_status }}</span>
             </div>
             <textarea id="pix-code" class="pix-code" readonly aria-label="Código Pix copia e cola">{{ $payment->br_code }}</textarea>

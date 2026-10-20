@@ -70,6 +70,7 @@ class LeaseController extends Controller
             'charges.solarReading',
             'charges.pixPayments' => fn ($query) => $query
                 ->select(PixPayment::SUMMARY_COLUMNS)
+                ->audited()
                 ->with('generatedBy:id,name')
                 ->latest(),
             'solarConfig.readings.charge',
