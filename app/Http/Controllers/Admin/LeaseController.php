@@ -87,9 +87,7 @@ class LeaseController extends Controller
         } catch (InvalidArgumentException) {
             $pixReady = false;
         }
-        $openPixPaymentId = session('pix_payment_id');
-
-        return view('admin.leases.show', compact('lease', 'openPixPaymentId', 'pixReady'));
+        return view('admin.leases.show', compact('lease', 'pixReady'));
     }
 
     public function edit(Lease $lease, ContractDateExtractor $dateExtractor)

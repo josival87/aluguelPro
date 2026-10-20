@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Charge;
 use App\Models\Lease;
+use App\Models\PixPayment;
 use App\Models\PropertyGroup;
 use App\Models\SolarReading;
 use App\Models\WhatsAppAutomation;
@@ -17,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 
 class ChargeController extends Controller
 {
@@ -205,12 +207,32 @@ class ChargeController extends Controller
         return back()->withErrors(['whatsapp' => $message]);
     }
 
+    public function pixHistory(Charge $charge, PixService $pix)
+    {
+        $charge->load([
+            'lease.property.group',
+            'pixPayments' => fn ($query) => $query
+                ->select(PixPayment::SUMMARY_COLUMNS)
+                ->with('generatedBy:id,name')
+                ->latest(),
+        ]);
+
+        try {
+            $pix->normalizeKey((string) $charge->lease->property->group?->pix_key);
+            $pixReady = true;
+        } catch (InvalidArgumentException) {
+            $pixReady = false;
+        }
+
+        return view('admin.charges.pix', compact('charge', 'pixReady'));
+    }
+
     public function pix(Request $request, Charge $charge, PixService $pix)
     {
         $payment = $pix->createFor($charge, $request->user());
 
         return redirect()
-            ->to(route('admin.leases.show', $charge->lease_id).'#pix-charge-'.$charge->id)
+            ->route('admin.charges.pix.show', $charge)
             ->with('pix_payment_id', $payment->id)
             ->with('success', 'Novo Pix gerado. Copie o código para compartilhar com o cliente.');
     }

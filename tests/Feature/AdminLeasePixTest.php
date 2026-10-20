@@ -25,13 +25,17 @@ class AdminLeasePixTest extends TestCase
             ->get(route('admin.leases.show', $lease))
             ->assertOk()
             ->assertSee('Pix')
+            ->assertSee(route('admin.charges.pix.show', $openCharge), false)
+            ->assertDontSee(route('admin.charges.pix.show', $paidCharge), false);
+
+        $this->get(route('admin.charges.pix.show', $openCharge))
+            ->assertOk()
             ->assertSee('Gerar novo Pix')
-            ->assertSee(route('admin.charges.pix', $openCharge), false)
-            ->assertDontSee(route('admin.charges.pix', $paidCharge), false);
+            ->assertSee('Histórico de Pix gerados');
 
         $this->actingAs($admin)
             ->post(route('admin.charges.pix', $openCharge))
-            ->assertRedirect(route('admin.leases.show', $lease).'#pix-charge-'.$openCharge->id)
+            ->assertRedirect(route('admin.charges.pix.show', $openCharge))
             ->assertSessionHas('pix_payment_id')
             ->assertSessionHas('success');
 
@@ -52,7 +56,7 @@ class AdminLeasePixTest extends TestCase
         $this->assertMatchesRegularExpression('/6304[0-9A-F]{4}$/', $payload);
         $this->assertSame(substr($payload, -4), $this->crc16(substr($payload, 0, -4)));
 
-        $this->get(route('admin.leases.show', $lease))
+        $this->get(route('admin.charges.pix.show', $openCharge))
             ->assertOk()
             ->assertSee('Histórico de Pix gerados')
             ->assertSee('Admin · '.$admin->name)
@@ -149,6 +153,10 @@ class AdminLeasePixTest extends TestCase
 
         $this->actingAs($admin)
             ->get(route('admin.leases.show', $lease))
+            ->assertOk()
+            ->assertSee('Comprovante')
+            ->assertSee(route('admin.pix.receipt', $payment), false);
+        $this->get(route('admin.charges.pix.show', $openCharge))
             ->assertOk()
             ->assertSee('Cliente · '.$clientUser->name)
             ->assertSee('Ver documento')

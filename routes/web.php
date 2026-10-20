@@ -84,6 +84,7 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('admin')->name('admin.
     Route::get('/cobrancas', [ChargeController::class, 'index'])->name('charges.index');
     Route::post('/cobrancas/gerar', [ChargeController::class, 'generate'])->name('charges.generate');
     Route::post('/alugueis/{lease}/cobrancas-avulsas', [ChargeController::class, 'storeOneOff'])->name('leases.charges.store');
+    Route::get('/cobrancas/{charge}/pix', [ChargeController::class, 'pixHistory'])->name('charges.pix.show');
     Route::post('/cobrancas/{charge}/pix', [ChargeController::class, 'pix'])->name('charges.pix');
     Route::get('/pix/{pixPayment}/comprovante', [PixReceiptController::class, 'adminShow'])->name('pix.receipt');
     Route::get('/cobrancas/{charge}/extrato-solar', [ChargeController::class, 'solarReceipt'])->name('charges.solar-receipt');

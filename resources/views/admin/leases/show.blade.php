@@ -130,7 +130,7 @@
                 <td data-label="Ações">
                     <div class="head-actions">
                         @if($charge->status === 'open' || $charge->pixPayments->isNotEmpty())
-                            <button id="pix-charge-{{ $charge->id }}" class="btn btn-outline btn-sm" type="button" data-dialog-open="pix-dialog-{{ $charge->id }}" @disabled($charge->status === 'open' && !$pixReady)><x-icon name="money"/> Pix</button>
+                            <a class="btn btn-outline btn-sm" href="{{ route('admin.charges.pix.show', $charge) }}"><x-icon name="money"/> Pix</a>
                         @endif
                         @if($charge->status==='open')
                             <form method="post" action="{{ route('admin.charges.paid',$charge) }}">@csrf @method('PATCH')<button class="btn btn-success btn-sm" type="submit">Dar baixa</button></form>
@@ -151,54 +151,6 @@
         @empty<tr><td colspan="6" class="empty">Nenhuma cobrança gerada.</td></tr>@endforelse</tbody>
     </table></div>
 
-    @foreach($lease->charges as $charge)
-        @if($charge->status === 'open' || $charge->pixPayments->isNotEmpty())
-            <dialog id="pix-dialog-{{ $charge->id }}" class="pix-dialog" @if($openPixPaymentId && $charge->pixPayments->contains('id', (int) $openPixPaymentId)) data-dialog-auto-open @endif>
-                <div class="pix-dialog-head">
-                    <div>
-                        <h2>Pix · {{ $charge->type === 'solar' ? 'Energia solar' : 'Aluguel' }}</h2>
-                        <p>{{ $charge->reference_month->translatedFormat('F/Y') }} · R$ {{ number_format((float) $charge->amount, 2, ',', '.') }}</p>
-                    </div>
-                    <form method="dialog"><button class="icon-btn" aria-label="Fechar" type="submit">×</button></form>
-                </div>
-
-                @if($charge->status === 'open')
-                    <form method="post" action="{{ route('admin.charges.pix', $charge) }}" style="margin-bottom:20px">
-                        @csrf
-                        <button class="btn" type="submit" @disabled(!$pixReady)><x-icon name="money"/> Gerar novo Pix</button>
-                    </form>
-                @endif
-
-                <h3>Histórico de Pix gerados</h3>
-                <div class="table-wrap pix-history"><table class="responsive">
-                    <thead><tr><th>Gerado por</th><th>Data e hora</th><th>Código Pix</th><th>Status</th><th>Comprovante</th></tr></thead>
-                    <tbody>
-                    @forelse($charge->pixPayments as $pix)
-                        <tr>
-                            <td data-label="Gerado por"><strong>{{ $pix->generator_label }}</strong></td>
-                            <td data-label="Data e hora">{{ $pix->created_at->format('d/m/Y H:i') }}</td>
-                            <td data-label="Código Pix">
-                                <textarea id="pix-history-code-{{ $pix->id }}" class="pix-code pix-code-compact" readonly>{{ $pix->br_code }}</textarea>
-                                <button class="btn btn-outline btn-sm" type="button" data-copy="#pix-history-code-{{ $pix->id }}">Copiar código</button>
-                            </td>
-                            <td data-label="Status"><span class="badge {{ $pix->status === 'paid' ? 'badge-success' : ($pix->display_status === 'Ativo' ? 'badge-warning' : 'badge-danger') }}">{{ $pix->display_status }}</span></td>
-                            <td data-label="Comprovante">
-                                @if($pix->receipt_original_name)
-                                    <a class="btn btn-outline btn-sm" href="{{ route('admin.pix.receipt', $pix) }}" target="_blank"><x-icon name="file"/> Ver documento</a>
-                                    <small style="display:block;color:var(--muted);margin-top:5px">{{ $pix->receipt_uploaded_at?->format('d/m/Y H:i') }}</small>
-                                @else
-                                    <span style="color:var(--muted)">Não anexado</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" class="empty">Nenhum Pix foi gerado para esta cobrança.</td></tr>
-                    @endforelse
-                    </tbody>
-                </table></div>
-            </dialog>
-        @endif
-    @endforeach
 </section>
 @php($notificationEvents = [
     'due_in_5_days' => 'Lembrete: vence em 5 dias',
